@@ -1,0 +1,34 @@
+# Django и базовые зависимости
+Django==5.0.7
+djangorestframework==3.15.2
+django-filter==24.3
+
+# PostgreSQL драйвер
+psycopg[binary]==3.1.19
+
+# Авторизация, JWT и работа с пользователями
+djangorestframework-simplejwt==5.3.1
+
+# Celery + Redis для задач
+celery==5.4.0
+redis==5.0.7
+
+# Для работы с CORS (если будет фронтенд отдельно)
+django-cors-headers==4.3.1
+
+# Карты и геоданные
+django-leaflet==0.30.0
+geopy==2.4.1
+
+# Работа с .env файлами
+python-dotenv==1.0.1
+
+# Для админки и удобства
+django-extensions==3.2.3
+
+# Для форматирования API (опционально)
+drf-yasg==1.21.7   # Swagger/OpenAPI документация
+
+# Тестирование
+pytest==8.3.2
+pytest-django==4.8.0

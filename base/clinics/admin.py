@@ -1,3 +1,16 @@
 from django.contrib import admin
+from .models import Clinic, Service
 
-# Register your models here.
+
+@admin.register(Clinic)
+class ClinicAdmin(admin.ModelAdmin):
+    list_display = ("name", "address", "phone", "owner", "is_active")
+    search_fields = ("name", "address", "phone")
+    prepopulated_fields = {"slug": ("name",)}
+
+
+@admin.register(Service)
+class ServiceAdmin(admin.ModelAdmin):
+    list_display = ("name", "clinic", "price", "duration_minutes", "is_active")
+    search_fields = ("name", "clinic__name")
+    list_filter = ("is_active",)

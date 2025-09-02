@@ -29,6 +29,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+AUTH_USER_MODEL = 'users.CustomUser'
+
 
 # Application definition
 
@@ -41,10 +43,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # созданные приложения
-    "accounts",
-    "clinics",
-    "pharmacies",
-    "medicines",
+    "clinics.apps.ClinicsConfig",
+    "pharmacies.apps.PharmaciesConfig",
+    "medicines.apps.MedicinesConfig",
+    'users.apps.UsersConfig'
 ]
 
 MIDDLEWARE = [

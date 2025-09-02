@@ -43,10 +43,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # созданные приложения
-    "clinics.apps.ClinicsConfig",
-    "pharmacies.apps.PharmaciesConfig",
-    "medicines.apps.MedicinesConfig",
-    'users.apps.UsersConfig'
+    "clinics",
+    "pharmacies",
+    "medicines",
+    'users',
+    'grooming',
 ]
 
 MIDDLEWARE = [
@@ -85,7 +86,7 @@ WSGI_APPLICATION = 'base.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'vetportal',       # имя моей базы
+        'NAME': 'vetportal',          # имя моей базы
         'USER': 'postgres',        # пользователь Postgres
         'PASSWORD': 'MoyaBdshka25',  # пароль
         'HOST': 'localhost',       # если локально

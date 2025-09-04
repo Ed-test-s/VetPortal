@@ -1,5 +1,9 @@
 from django.db import models
 from django.conf import settings
+from django.core.validators import MinValueValidator
+from decimal import Decimal
+import uuid
+from django.utils import timezone
 
 
 class Cart(models.Model):
@@ -7,7 +11,7 @@ class Cart(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='cart'
+        related_name="cart"
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -19,15 +23,15 @@ class Cart(models.Model):
         return f"Корзина {self.user.username}"
 
     def total_price(self):
-        return sum(item.total_price() for item in self.items.select_related('pharmacy_medicine'))
+        return sum(item.total_price() for item in self.items.select_related("pharmacy_medicine"))
 
     def grouped_by_pharmacy(self):
-        """Секции корзины по аптекам (для твоей логики оформления по одной аптеке)."""
+        """Секции корзины по аптекам (для логики оформления по одной аптеке)."""
         from collections import defaultdict
         groups = defaultdict(list)
         qs = self.items.select_related(
-            'pharmacy_medicine__pharmacy',
-            'pharmacy_medicine__medicine'
+            "pharmacy_medicine__pharmacy",
+            "pharmacy_medicine__medicine"
         )
         for item in qs:
             groups[item.pharmacy_medicine.pharmacy].append(item)
@@ -36,26 +40,37 @@ class Cart(models.Model):
 
 class CartItem(models.Model):
     """Позиция корзины — конкретное лекарство в конкретной аптеке."""
-    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name="items")
     pharmacy_medicine = models.ForeignKey(
-        'pharmacies.PharmacyMedicine',
+        "pharmacies.PharmacyMedicine",
         on_delete=models.CASCADE,
-        related_name='cart_items',
-        verbose_name='Лекарство в аптеке'
+        related_name="cart_items",
+        verbose_name="Лекарство в аптеке"
     )
-    quantity = models.PositiveIntegerField(default=1, verbose_name='Количество')
+    quantity = models.PositiveIntegerField(
+        default=1,
+        verbose_name="Количество",
+        validators=[MinValueValidator(1)]
+    )
 
     class Meta:
         verbose_name = "Позиция корзины"
         verbose_name_plural = "Позиции корзины"
-        unique_together = ('cart', 'pharmacy_medicine')
+        unique_together = ("cart", "pharmacy_medicine")
         indexes = [
-            models.Index(fields=['cart', 'pharmacy_medicine']),
+            models.Index(fields=["cart", "pharmacy_medicine"]),
         ]
 
     def __str__(self):
         pm = self.pharmacy_medicine
         return f"{pm.medicine.name} ({pm.pharmacy.name}) x {self.quantity}"
+
+    def clean(self):
+        """Валидация доступности товара."""
+        if self.pharmacy_medicine and hasattr(self.pharmacy_medicine, "is_available"):
+            if not self.pharmacy_medicine.is_available(self.quantity):
+                from django.core.exceptions import ValidationError
+                raise ValidationError("Недостаточно товара в аптеке.")
 
     def total_price(self):
         price = self.pharmacy_medicine.price or 0
@@ -67,57 +82,74 @@ class Favorite(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='favorites'
+        related_name="favorites"
     )
     medicine = models.ForeignKey(
-        'medicines.Medicine',
+        "medicines.Medicine",
         on_delete=models.CASCADE,
-        related_name='in_favorites'
+        related_name="in_favorites"
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name = "Избранное (лекарство)"
         verbose_name_plural = "Избранное (лекарства)"
-        unique_together = ('user', 'medicine')
+        unique_together = ("user", "medicine")
         indexes = [
-            models.Index(fields=['user', 'medicine']),
+            models.Index(fields=["user", "medicine"]),
         ]
 
     def __str__(self):
         return f"{self.user.username} ♥ {self.medicine.name}"
 
+    @classmethod
+    def toggle(cls, user, medicine):
+        """Добавить/удалить из избранного. Возвращает (obj, created)."""
+        favorite, created = cls.objects.get_or_create(user=user, medicine=medicine)
+        if not created:
+            # уже было в избранном → убираем
+            favorite.delete()
+            return None, False
+        return favorite, True
+
 
 class Order(models.Model):
     """Заказ: формируется из позиций одной аптеки."""
-    STATUS_PENDING = 'pending'
-    STATUS_CONFIRMED = 'confirmed'
-    STATUS_READY = 'ready_for_pickup'
-    STATUS_COMPLETED = 'completed'
-    STATUS_CANCELLED = 'cancelled'
+    STATUS_PENDING = "pending"
+    STATUS_CONFIRMED = "confirmed"
+    STATUS_READY = "ready_for_pickup"
+    STATUS_COMPLETED = "completed"
+    STATUS_CANCELLED = "cancelled"
 
     STATUS_CHOICES = [
-        (STATUS_PENDING, 'Ожидает подтверждения'),
-        (STATUS_CONFIRMED, 'Подтверждён'),
-        (STATUS_READY, 'Готов к выдаче'),
-        (STATUS_COMPLETED, 'Завершён'),
-        (STATUS_CANCELLED, 'Отменён'),
+        (STATUS_PENDING, "Ожидает подтверждения"),
+        (STATUS_CONFIRMED, "Подтверждён"),
+        (STATUS_READY, "Готов к выдаче"),
+        (STATUS_COMPLETED, "Завершён"),
+        (STATUS_CANCELLED, "Отменён"),
     ]
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='orders'
+        related_name="orders"
     )
     pharmacy = models.ForeignKey(
-        'pharmacies.Pharmacy',
+        "pharmacies.Pharmacy",
         on_delete=models.PROTECT,
-        related_name='orders',
-        verbose_name='Аптека'
+        related_name="orders",
+        verbose_name="Аптека"
+    )
+    order_number = models.CharField(
+        max_length=36,
+        unique=True,
+        editable=False,
+        db_index=True
     )
     total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     status = models.CharField(max_length=32, choices=STATUS_CHOICES, default=STATUS_PENDING, db_index=True)
-    note = models.CharField(max_length=500, blank=True, null=True, verbose_name='Комментарий')
+    status_updated_at = models.DateTimeField(null=True, blank=True)
+    note = models.CharField(max_length=500, blank=True, null=True, verbose_name="Комментарий")
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -125,39 +157,58 @@ class Order(models.Model):
         verbose_name = "Заказ"
         verbose_name_plural = "Заказы"
         indexes = [
-            models.Index(fields=['user', 'status']),
-            models.Index(fields=['pharmacy', 'status']),
-            models.Index(fields=['created_at']),
+            models.Index(fields=["user", "status"]),
+            models.Index(fields=["pharmacy", "status"]),
+            models.Index(fields=["created_at"]),
         ]
 
     def __str__(self):
-        return f"Заказ #{self.pk} ({self.pharmacy.name})"
+        return f"Заказ {self.order_number} ({self.pharmacy.name})"
 
-    def recalc_total(self):
+    def save(self, *args, **kwargs):
+        if not self.order_number:
+            self.order_number = str(uuid.uuid4())
+        # при изменении статуса фиксируем время
+        if self.pk:
+            old = Order.objects.filter(pk=self.pk).first()
+            if old and old.status != self.status:
+                self.status_updated_at = timezone.now()
+        else:
+            self.status_updated_at = timezone.now()
+        super().save(*args, **kwargs)
+
+    def recalc_total(self, save=True):
         total = sum(item.total_price() for item in self.items.all())
         self.total_price = total
+        if save:
+            self.save(update_fields=["total_price"])
         return total
 
 
 class OrderItem(models.Model):
     """Позиция заказа: фиксируем цену на момент покупки."""
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
-    medicine = models.ForeignKey('medicines.Medicine', on_delete=models.PROTECT, related_name='order_items')
-    quantity = models.PositiveIntegerField()
-    price_at_purchase = models.DecimalField(max_digits=10, decimal_places=2)
-    # опционально: ссылка на PM для истории
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
+    medicine = models.ForeignKey("medicines.Medicine", on_delete=models.PROTECT, related_name="order_items")
+    quantity = models.PositiveIntegerField(
+        validators=[MinValueValidator(1)]
+    )
+    price_at_purchase = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.00"))]
+    )
     pharmacy_medicine = models.ForeignKey(
-        'pharmacies.PharmacyMedicine',
+        "pharmacies.PharmacyMedicine",
         on_delete=models.SET_NULL,
         null=True, blank=True,
-        related_name='order_items'
+        related_name="order_items"
     )
 
     class Meta:
         verbose_name = "Позиция заказа"
         verbose_name_plural = "Позиции заказа"
         indexes = [
-            models.Index(fields=['order', 'medicine']),
+            models.Index(fields=["order", "medicine"]),
         ]
 
     def __str__(self):

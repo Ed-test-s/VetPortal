@@ -1,5 +1,6 @@
 from django.db import models
-from django.utils.text import slugify
+from utils import generate_unique_slug
+from django.db import models, IntegrityError
 
 
 class Medicine(models.Model):
@@ -30,8 +31,12 @@ class Medicine(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name)
-        super().save(*args, **kwargs)
+            self.slug = generate_unique_slug(self, "slug", "name")
+        try:
+            super().save(*args, **kwargs)
+        except IntegrityError:
+            self.slug = generate_unique_slug(self, "slug", "name")
+            super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name

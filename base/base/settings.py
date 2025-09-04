@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'grooming',
     'journal',
     'orders',
+    "phonenumber_field",
 ]
 
 MIDDLEWARE = [

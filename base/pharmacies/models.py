@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
-from django.utils.text import slugify
+from django.db import models, IntegrityError
+from utils import generate_unique_slug
 
 
 class Pharmacy(models.Model):
@@ -11,7 +12,6 @@ class Pharmacy(models.Model):
     address = models.CharField(max_length=500)
     phone = models.CharField(max_length=32)
     email = models.EmailField(blank=True, null=True)
-    website = models.URLField(blank=True, null=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     is_active = models.BooleanField(default=True)
@@ -25,8 +25,12 @@ class Pharmacy(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name)
-        super().save(*args, **kwargs)
+            self.slug = generate_unique_slug(self, "slug", "name")
+        try:
+            super().save(*args, **kwargs)
+        except IntegrityError:
+            self.slug = generate_unique_slug(self, "slug", "name")
+            super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name

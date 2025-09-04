@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from phonenumber_field.modelfields import PhoneNumberField
 
 
 class CustomUser(AbstractUser):
@@ -18,8 +19,11 @@ class CustomUser(AbstractUser):
     ]
 
     role = models.CharField(max_length=24, choices=ROLE_CHOICES, default=ROLE_CLIENT)
-    phone = models.CharField("Телефон", max_length=30, blank=True, null=True)
+    phone = PhoneNumberField("Телефон", blank=True, null=True, region="BY", unique=True)
     org_name = models.CharField("Организация (если применимо)", max_length=255, blank=True, null=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["role"])]
 
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"

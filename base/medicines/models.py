@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.text import slugify
 
+
 class Medicine(models.Model):
     CATEGORY_CHOICES = [
         ("antibiotic", "Антибиотик"),

@@ -35,15 +35,19 @@ class Pharmacy(models.Model):
 class PharmacyMedicine(models.Model):
     pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE, related_name="pharmacy_medicines")
     medicine = models.ForeignKey("medicines.Medicine", on_delete=models.CASCADE, related_name="medicine_in_pharmacies")
-    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Цена")
     in_stock = models.BooleanField(default=True)
-    stock_qty = models.PositiveIntegerField(default=0)
+    stock_qty = models.PositiveIntegerField(default=0, verbose_name="Количество")
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         unique_together = ("pharmacy", "medicine")
         ordering = ["-updated_at"]
-        indexes = [models.Index(fields=["medicine"]), models.Index(fields=["pharmacy"])]
 
     def __str__(self):
         return f"{self.medicine.name} @ {self.pharmacy.name}"
+
+    def is_available(self, qty=1):
+        """Есть ли в наличии нужное количество"""
+        return self.in_stock and self.stock_qty >= qty
+

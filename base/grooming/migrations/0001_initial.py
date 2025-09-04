@@ -12,14 +12,13 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Clinic',
+            name='GroomingCenter',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=255)),
                 ('slug', models.SlugField(blank=True, max_length=255, unique=True)),
                 ('address', models.CharField(max_length=500)),
-                ('phone', models.CharField(max_length=32)),
-                ('email', models.EmailField(blank=True, max_length=254, null=True)),
+                ('phone', models.CharField(blank=True, max_length=32, null=True)),
                 ('website', models.URLField(blank=True, null=True)),
                 ('latitude', models.DecimalField(blank=True, decimal_places=6, max_digits=9, null=True)),
                 ('longitude', models.DecimalField(blank=True, decimal_places=6, max_digits=9, null=True)),
@@ -28,12 +27,9 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
             ],
-            options={
-                'ordering': ['name'],
-            },
         ),
         migrations.CreateModel(
-            name='Service',
+            name='GroomingService',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=255)),
@@ -43,8 +39,5 @@ class Migration(migrations.Migration):
                 ('duration_minutes', models.PositiveIntegerField(blank=True, null=True)),
                 ('is_active', models.BooleanField(default=True)),
             ],
-            options={
-                'ordering': ['name'],
-            },
         ),
     ]

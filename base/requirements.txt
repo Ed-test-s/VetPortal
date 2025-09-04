@@ -32,3 +32,7 @@ drf-yasg==1.21.7   # Swagger/OpenAPI документация
 # Тестирование
 pytest==8.3.2
 pytest-django==4.8.0
+
+# для поля ImageField в модели Article нужен пакет Pillow (он занимается обработкой изображений)
+Django>=5.0,<6.0
+Pillow

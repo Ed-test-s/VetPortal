@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'users',
     'grooming',
     'journal',
+    'orders',
 ]
 
 MIDDLEWARE = [

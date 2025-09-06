@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Clinic, Service
+from .models import Clinic, ClinicService
 
 
 @admin.register(Clinic)
@@ -9,7 +9,7 @@ class ClinicAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
 
 
-@admin.register(Service)
+@admin.register(ClinicService)
 class ServiceAdmin(admin.ModelAdmin):
     list_display = ("name", "clinic", "price", "duration_minutes", "is_active")
     search_fields = ("name", "clinic__name")

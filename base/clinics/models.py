@@ -22,11 +22,13 @@ class Clinic(models.Model):
 
     class Meta:
         unique_together = ("name", "address")
-        ordering = ["name"]
         indexes = [
             models.Index(fields=["name"]),
             models.Index(fields=["latitude", "longitude"])
         ]
+        ordering = ["name"]
+        verbose_name = "Ветеринарная клиника"
+        verbose_name_plural = "Ветеринарные клиники"
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -42,7 +44,7 @@ class Clinic(models.Model):
         return self.name
 
 
-class Service(models.Model):
+class ClinicService(models.Model):
     clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name="services")
     name = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, blank=True)
@@ -54,6 +56,8 @@ class Service(models.Model):
     class Meta:
         unique_together = ('clinic', 'slug')
         ordering = ["name"]
+        verbose_name = "Услуга"
+        verbose_name_plural = "Услуги"
         indexes = [models.Index(fields=["name"]), models.Index(fields=["clinic"])]
 
     def save(self, *args, **kwargs):

@@ -12,7 +12,10 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
 
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,10 +25,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-w8p&#v)kukf(48(wjy*xrr*(%@-y0b5n7=8*#zpv65k=9us9^&'
+SECRET_KEY = os.getenv("SECRET_KEY_VALUE")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG_VALUE")
 
 ALLOWED_HOSTS = []
 
@@ -51,6 +54,7 @@ INSTALLED_APPS = [
     'journal',
     'orders',
     "phonenumber_field",
+    'reviews',
 ]
 
 MIDDLEWARE = [
@@ -90,11 +94,11 @@ WSGI_APPLICATION = 'base.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'vetportal',          # имя моей базы
-        'USER': 'postgres',        # пользователь Postgres
-        'PASSWORD': 'MoyaBdshka25',  # пароль
-        'HOST': 'localhost',       # если локально
-        'PORT': '5432',            # стандартный порт
+        'NAME': os.getenv("DB_NAME"),
+        'USER': os.getenv("DB_USER"),
+        'PASSWORD': os.getenv("DB_PASSWORD"),
+        'HOST': os.getenv("DB_HOST"),
+        'PORT': os.getenv("DB_PORT"),
     }
 }
 

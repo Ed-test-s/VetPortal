@@ -23,11 +23,13 @@ class Medicine(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ["name"]
         indexes = [
             models.Index(fields=["name"]),
             models.Index(fields=["slug"]),
         ]
+        ordering = ["name"]
+        verbose_name = "Лекарство"
+        verbose_name_plural = "Лекарства"
 
     def save(self, *args, **kwargs):
         if not self.slug:

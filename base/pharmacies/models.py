@@ -21,6 +21,8 @@ class Pharmacy(models.Model):
     class Meta:
         unique_together = ("name", "address")
         ordering = ["name"]
+        verbose_name = "Аптека"
+        verbose_name_plural = "Аптеки"
         indexes = [models.Index(fields=["name"])]
 
     def save(self, *args, **kwargs):
@@ -47,6 +49,7 @@ class PharmacyMedicine(models.Model):
     class Meta:
         unique_together = ("pharmacy", "medicine")
         ordering = ["-updated_at"]
+        verbose_name_plural = "Склады аптек"
 
     def __str__(self):
         return f"{self.medicine.name} @ {self.pharmacy.name}"

@@ -24,6 +24,7 @@ class CustomUser(AbstractUser):
 
     class Meta:
         indexes = [models.Index(fields=["role"])]
+        verbose_name_plural = "Пользователи"
 
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"

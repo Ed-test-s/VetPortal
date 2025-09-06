@@ -23,6 +23,9 @@ class GroomingCenter(models.Model):
         indexes = [
             models.Index(fields=["latitude", "longitude"]),
         ]
+        ordering = ["name"]
+        verbose_name = "Груминг-центр"
+        verbose_name_plural = "Груминг-центры"
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -49,6 +52,9 @@ class GroomingService(models.Model):
 
     class Meta:
         unique_together = ("center", "slug")
+        ordering = ["name"]
+        verbose_name = "Услуга"
+        verbose_name_plural = "Услуги"
 
     def save(self, *args, **kwargs):
         if not self.slug:

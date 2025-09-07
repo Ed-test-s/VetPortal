@@ -85,7 +85,6 @@ class Article(models.Model):
         ordering = ["-published_at", "-created_at"]
 
     def save(self, *args, **kwargs):
-        # генерация slug
         if not self.slug:
             self.slug = generate_unique_slug(self, "slug", "title")
 

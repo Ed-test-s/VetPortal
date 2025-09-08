@@ -12,6 +12,7 @@ class GroomingCenter(models.Model):
     slug = models.SlugField(max_length=255, blank=True, unique=True)
     address = models.CharField(max_length=500)
     phone = PhoneNumberField(region="BY")
+    email = models.EmailField(blank=True, null=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     description = models.TextField(blank=True)

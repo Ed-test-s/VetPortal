@@ -166,53 +166,72 @@ class Order(models.Model):
         return f"Заказ {self.order_number} ({self.pharmacy.name})"
 
     def save(self, *args, **kwargs):
+        is_new = self.pk is None
+
         if not self.order_number:
             self.order_number = str(uuid.uuid4())
-        # при изменении статуса фиксируем время
-        if self.pk:
+        if not is_new:
             old = Order.objects.filter(pk=self.pk).first()
             if old and old.status != self.status:
                 self.status_updated_at = timezone.now()
         else:
             self.status_updated_at = timezone.now()
+
+        # сначала сохраняем заказ, чтобы появился pk
         super().save(*args, **kwargs)
+
+        # только потом пересчитываем total (если заказ уже существует)
+        self.recalc_total(save=True)
 
     def recalc_total(self, save=True):
         total = sum(item.total_price() for item in self.items.all())
         self.total_price = total
         if save:
-            self.save(update_fields=["total_price"])
+            super(Order, self).save(update_fields=["total_price"])
         return total
 
 
 class OrderItem(models.Model):
     """Позиция заказа: фиксируем цену на момент покупки."""
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
-    medicine = models.ForeignKey("medicines.Medicine", on_delete=models.PROTECT, related_name="order_items")
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name="items"
+    )
+    pharmacy_medicine = models.ForeignKey(
+        "pharmacies.PharmacyMedicine",
+        on_delete=models.PROTECT,
+        related_name="order_items",
+        verbose_name="Лекарство в аптеке"
+    )
     quantity = models.PositiveIntegerField(
-        validators=[MinValueValidator(1)]
+        validators=[MinValueValidator(1)],
+        verbose_name="Количество"
     )
     price_at_purchase = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        validators=[MinValueValidator(Decimal("0.00"))]
-    )
-    pharmacy_medicine = models.ForeignKey(
-        "pharmacies.PharmacyMedicine",
-        on_delete=models.SET_NULL,
-        null=True, blank=True,
-        related_name="order_items"
+        validators=[MinValueValidator(Decimal("0.00"))],
+        editable=False  # запрещаем редактировать вручную
     )
 
     class Meta:
         verbose_name = "Позиция заказа"
         verbose_name_plural = "Позиции заказа"
         indexes = [
-            models.Index(fields=["order", "medicine"]),
+            models.Index(fields=["order", "pharmacy_medicine"]),
         ]
+        unique_together = ("order", "pharmacy_medicine")
+
+    def save(self, *args, **kwargs):
+        # фиксируем цену из PharmacyMedicine
+        if not self.price_at_purchase and self.pharmacy_medicine:
+            self.price_at_purchase = self.pharmacy_medicine.price
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.medicine.name} x {self.quantity}"
+        return f"{self.pharmacy_medicine.medicine.name} x {self.quantity}"
 
     def total_price(self):
         return self.price_at_purchase * self.quantity
+

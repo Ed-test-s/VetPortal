@@ -19,10 +19,12 @@ class CartAdmin(admin.ModelAdmin):
 
     def items_count(self, obj):
         return obj.items.count()
+
     items_count.short_description = "Позиций"
 
     def total_price_display(self, obj):
         return obj.total_price()
+
     total_price_display.short_description = "Сумма"
 
 
@@ -34,6 +36,7 @@ class CartItemAdmin(admin.ModelAdmin):
 
     def line_total(self, obj):
         return obj.total_price()
+
     line_total.short_description = "Итого"
 
 
@@ -48,8 +51,9 @@ class FavoriteAdmin(admin.ModelAdmin):
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 0
-    autocomplete_fields = ('medicine', 'pharmacy_medicine')
-    fields = ('medicine', 'quantity', 'price_at_purchase', 'pharmacy_medicine')
+    autocomplete_fields = ('pharmacy_medicine',)
+    fields = ('pharmacy_medicine', 'quantity', 'price_at_purchase')
+    readonly_fields = ('price_at_purchase',)
 
 
 @admin.register(Order)
@@ -58,13 +62,22 @@ class OrderAdmin(admin.ModelAdmin):
     list_filter = ('status', 'pharmacy', 'created_at')
     search_fields = ('user__username', 'pharmacy__name')
     inlines = [OrderItemInline]
+    readonly_fields = ('order_number', 'total_price', 'status_updated_at', 'created_at', 'updated_at')
+
+    # убираем total_price из формы редактирования
+    exclude = ('total_price',)
 
 
 @admin.register(OrderItem)
 class OrderItemAdmin(admin.ModelAdmin):
-    list_display = ('order', 'medicine', 'quantity', 'price_at_purchase', 'line_total')
-    autocomplete_fields = ('order', 'medicine', 'pharmacy_medicine')
+    list_display = ('order', 'pharmacy_medicine', 'quantity', 'price_at_purchase', 'line_total')
+    autocomplete_fields = ('order', 'pharmacy_medicine')
+    readonly_fields = ('price_at_purchase',)
 
     def line_total(self, obj):
         return obj.total_price()
+
     line_total.short_description = "Итого"
+
+
+    # total_price заказа будет только для чтения (автоматически считается); руками его вводить/редактировать нельзя.

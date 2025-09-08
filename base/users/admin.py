@@ -6,7 +6,7 @@ from .models import CustomUser
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets + (
-        ("Дополнительно", {"fields": ("role", "phone", "org_name")}),
+        ("Дополнительно", {"fields": ("role", "phone")}),
     )
     list_display = ("username", "email", "role", "is_staff", "is_active")
     list_filter = ("role", "is_staff", "is_active")

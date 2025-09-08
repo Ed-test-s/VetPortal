@@ -14,3 +14,4 @@ class ServiceAdmin(admin.ModelAdmin):
     list_display = ("name", "clinic", "price", "duration_minutes", "is_active")
     search_fields = ("name", "clinic__name")
     list_filter = ("is_active",)
+    prepopulated_fields = {"slug": ("name",)}

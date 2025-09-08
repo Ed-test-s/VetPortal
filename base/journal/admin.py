@@ -2,11 +2,6 @@ from django.contrib import admin
 from .models import Category, Tag, Article
 
 
-class TagInline(admin.TabularInline):  # можно использовать StackedInline для другого вида
-    model = Article.tags.through  # связывающая таблица ManyToMany
-    extra = 1  # сколько пустых полей будет для добавления тегов
-
-
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
@@ -15,8 +10,10 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    prepopulated_fields = {"slug": ("name",)}
     search_fields = ("name",)
+    list_display = ("name",)  # тут тоже надо будет если что "slug" добавит
+    # скрытие slug при редактировании/создании, под будущий функционал
+    exclude = ("slug",)
 
 
 @admin.register(Article)
@@ -26,4 +23,3 @@ class ArticleAdmin(admin.ModelAdmin):
     search_fields = ("title", "content")
     prepopulated_fields = {"slug": ("title",)}
     filter_horizontal = ("tags",)  # красивый виджет для выбора тегов
-    inlines = [TagInline]  # добавляем inline-редактирование тегов

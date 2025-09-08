@@ -14,3 +14,4 @@ class GroomingServiceAdmin(admin.ModelAdmin):
     list_display = ("name", "center", "price", "duration_minutes", "is_active")
     autocomplete_fields = ("center",)
     search_fields = ("name",)
+    prepopulated_fields = {"slug": ("name",)}

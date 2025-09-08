@@ -1,5 +1,12 @@
 from django.contrib import admin
-from .models import Medicine
+from .models import Medicine, Category
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ("name", "slug")
+    search_fields = ("name",)
+    prepopulated_fields = {"slug": ("name",)}
 
 
 @admin.register(Medicine)

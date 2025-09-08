@@ -20,7 +20,6 @@ class CustomUser(AbstractUser):
 
     role = models.CharField(max_length=24, choices=ROLE_CHOICES, default=ROLE_CLIENT)
     phone = PhoneNumberField("Телефон", blank=True, null=True, region="BY", unique=True)
-    org_name = models.CharField("Организация (если применимо)", max_length=255, blank=True, null=True)
 
     class Meta:
         indexes = [models.Index(fields=["role"])]

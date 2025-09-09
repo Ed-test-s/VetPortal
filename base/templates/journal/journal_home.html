@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Журнал{% endblock %}
+
+{% block content %}
+  <h1 class="mb-4">Журнал</h1>
+  <div class="row">
+    {% for article in articles %}
+      <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+          {% if article.image %}
+            <img src="{{ article.image.url }}" class="card-img-top" alt="{{ article.title }}">
+          {% endif %}
+          <div class="card-body">
+            <h5 class="card-title">
+              <a href="{% url 'article_detail' article.slug %}">{{ article.title }}</a>
+            </h5>
+            <p class="card-text text-muted">{{ article.published_at|date:"d.m.Y" }}</p>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <p>Статей пока нет.</p>
+    {% endfor %}
+  </div>
+{% endblock %}

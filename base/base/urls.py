@@ -31,6 +31,3 @@ urlpatterns = [
     path('pharmacies/', include('pharmacies.urls')),
     path('orders/', include('orders.urls')),
 ]
-
-
-

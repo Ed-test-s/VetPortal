@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1>Страница не найдена (404)</h1>
+    <p>К сожалению, такой страницы не существует.</p>
+    <a href="{% url 'home' %}">Вернуться на главную</a>
+</div>
+{% endblock %}

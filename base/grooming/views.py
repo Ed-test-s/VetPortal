@@ -1,3 +1,9 @@
 from django.shortcuts import render
 
-# Create your views here.
+
+def grooming_list(request):
+    return render(request, "grooming/list.html")
+
+
+def grooming_detail(request, slug):
+    return render(request, "grooming/detail.html", {"slug": slug})

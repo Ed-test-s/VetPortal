@@ -17,7 +17,20 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from django.contrib import admin
+from django.urls import path, include
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('journal.urls')),  # главная страница из приложения journal
+
+    path('', include('journal.urls')),   # главная страница
+    path('users/', include('users.urls')),
+    path('medicines/', include('medicines.urls')),
+    path('clinics/', include('clinics.urls')),
+    path('grooming/', include('grooming.urls')),
+    path('pharmacies/', include('pharmacies.urls')),
+    path('orders/', include('orders.urls')),
 ]
+
+
+

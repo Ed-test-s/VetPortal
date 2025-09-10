@@ -6,3 +6,4 @@ urlpatterns = [
     path("journal/", views.journal_home, name="journal_home"),  # список статей
     path("journal/<slug:slug>/", views.article_detail, name="article_detail"),  # отдельная статья
 ]
+

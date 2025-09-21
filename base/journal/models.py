@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 from django.utils.timezone import now
 from utils import generate_unique_slug
+from users.models import UserProfile
 
 
 def article_zip_path(instance, filename):
@@ -86,7 +87,7 @@ class Article(models.Model):
     published_at = models.DateTimeField(null=True, blank=True, verbose_name="Дата публикации")
 
     author = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        UserProfile,
         on_delete=models.SET_NULL,
         null=True,
         verbose_name="Автор"
@@ -137,3 +138,29 @@ class Article(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Comment(models.Model):
+    article = models.ForeignKey(
+        "Article",
+        on_delete=models.CASCADE,
+        related_name="comments",
+        verbose_name="Статья"
+    )
+    user = models.ForeignKey(
+        UserProfile,
+        on_delete=models.CASCADE,
+        related_name="comments",
+        verbose_name="Пользователь"
+    )
+    text = models.TextField("Текст комментария")
+    created_at = models.DateTimeField("Дата создания", default=now)
+    updated_at = models.DateTimeField("Дата обновления", auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Комментарий"
+        verbose_name_plural = "Комментарии"
+
+    def __str__(self):
+        return f"Комментарий от {self.user.user.username} к {self.article.title}"

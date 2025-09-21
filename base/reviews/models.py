@@ -1,12 +1,13 @@
 from django.conf import settings
 from django.db import models
+from users.models import UserProfile
 
 
 class Review(models.Model):
     """Отзывы о лекарствах"""
 
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        UserProfile,
         on_delete=models.CASCADE,
         related_name="reviews",
         verbose_name="Пользователь",

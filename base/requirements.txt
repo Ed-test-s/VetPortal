@@ -36,3 +36,4 @@ pytest-django==4.8.0
 # для поля ImageField в модели Article нужен пакет Pillow (он занимается обработкой изображений)
 Django>=5.0,<6.0
 Pillow
+django-phonenumber-field==8.1.0

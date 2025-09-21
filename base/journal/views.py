@@ -4,11 +4,6 @@ from django.conf import settings
 from .models import Article
 
 
-def home(request):
-    """Главная страница портала"""
-    return render(request, "journal/home.html")
-
-
 def journal_home(request):
     """Страница со списком статей"""
     articles = Article.objects.filter(is_published=True).order_by("-published_at", "-created_at")

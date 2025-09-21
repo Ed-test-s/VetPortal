@@ -2,6 +2,14 @@ from django.db import models, IntegrityError
 from utils import generate_unique_slug
 
 
+def medicine_main_image_path(instance, filename):
+    return f"medicines/{instance.slug}/main/{filename}"
+
+
+def medicine_extra_image_path(instance, filename):
+    return f"medicines/{instance.medicine.slug}/extra/{filename}"
+
+
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name="Название категории")
     slug = models.SlugField(unique=True, blank=True, verbose_name="Слаг")
@@ -35,6 +43,7 @@ class Medicine(models.Model):
         related_name="medicines",
         verbose_name="Категория"
     )
+    main_image = models.ImageField(upload_to=medicine_main_image_path, blank=True, null=True)
     manufacturer = models.CharField(max_length=255, blank=True, verbose_name="Производитель")
     description = models.TextField(blank=True, verbose_name="Описание")
     instruction = models.TextField(blank=True, verbose_name="Инструкция по применению")
@@ -62,3 +71,8 @@ class Medicine(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class PharmacyImage(models.Model):
+    medicine = models.ForeignKey(Medicine, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to=medicine_extra_image_path)

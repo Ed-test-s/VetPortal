@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Tag, Article
+from .models import Category, Tag, Article, Comment
 
 
 @admin.register(Category)
@@ -26,8 +26,8 @@ class ArticleAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {
             "fields": (
-                "title", "author", "published_at", "image",
-                "slug", "content", "zip_file"   # ← тут заменил
+                "title", "slug", "author", "published_at", "image",
+                 "content", "zip_file"
             ),
             "description": (
                 "⚠️ Если вы загружаете архив статьи (.zip), он должен содержать:<br>"
@@ -38,3 +38,10 @@ class ArticleAdmin(admin.ModelAdmin):
             )
         }),
     )
+
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ("user", "article", "created_at")
+    search_fields = ("text", "user__user__username", "article__title")
+    list_filter = ("created_at",)

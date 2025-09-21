@@ -1,9 +1,11 @@
-from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.contrib.auth.models import User
 from phonenumber_field.modelfields import PhoneNumberField
 
 
-class CustomUser(AbstractUser):
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+
     ROLE_ADMIN_PORTAL = 'admin_portal'
     ROLE_CLIENT = 'client'
     ROLE_PHARMACY = 'pharmacy_admin'
@@ -18,18 +20,17 @@ class CustomUser(AbstractUser):
         (ROLE_GROOMING, 'Администратор груминг-центра'),
     ]
 
-    role = models.CharField(max_length=24, choices=ROLE_CHOICES, default=ROLE_CLIENT)
     phone = PhoneNumberField("Телефон", blank=True, null=True, region="BY", unique=True)
+    role = models.CharField(max_length=24, choices=ROLE_CHOICES, default=ROLE_CLIENT, db_index=True)
 
     class Meta:
         indexes = [models.Index(fields=["role"])]
-        verbose_name_plural = "Пользователи"
+        verbose_name = "Профиль пользователя"
+        verbose_name_plural = "Профили пользователей"
 
     def __str__(self):
-        return f"{self.username} ({self.get_role_display()})"
+        return f"{self.user.username} ({self.get_role_display()})"
 
     @property
     def is_platform_admin(self):
         return self.role == self.ROLE_ADMIN_PORTAL
-
-

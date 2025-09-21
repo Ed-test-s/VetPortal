@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Ветеринарный портал</h1>
+
+  <h2>Последние добавленные лекарства</h2>
+  <div class="medicine-list">
+    {% for med in latest_medicines %}
+      <div class="medicine-card">
+        {% if med.main_image %}
+          <img src="{{ med.main_image.url }}" alt="{{ med.name }}" style="max-width:150px;">
+        {% endif %}
+        <h3>{{ med.name }}</h3>
+        <p>{{ med.description|truncatewords:20 }}</p>
+        <a href="{% url 'medicine_detail' med.id %}">Подробнее</a>
+      </div>
+    {% empty %}
+      <p>Пока нет добавленных лекарств.</p>
+    {% endfor %}
+  </div>
+{% endblock %}

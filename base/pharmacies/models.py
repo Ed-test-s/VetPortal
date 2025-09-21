@@ -2,10 +2,11 @@ from django.db import models
 from django.conf import settings
 from django.db import models, IntegrityError
 from utils import generate_unique_slug
+from users.models import UserProfile
 
 
 class Pharmacy(models.Model):
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+    owner = models.ForeignKey(UserProfile, on_delete=models.SET_NULL,
                               null=True, blank=True, related_name="pharmacies")
     name = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, blank=True, unique=True)

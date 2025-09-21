@@ -4,12 +4,13 @@ from django.core.validators import MinValueValidator
 from decimal import Decimal
 import uuid
 from django.utils import timezone
+from users.models import UserProfile
 
 
 class Cart(models.Model):
     """Корзина пользователя (одна на пользователя)."""
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
+        UserProfile,
         on_delete=models.CASCADE,
         related_name="cart"
     )
@@ -20,7 +21,7 @@ class Cart(models.Model):
         verbose_name_plural = "Корзины"
 
     def __str__(self):
-        return f"Корзина {self.user.username}"
+        return f"Корзина {self.user.user.username}"
 
     def total_price(self):
         return sum(item.total_price() for item in self.items.select_related("pharmacy_medicine"))
@@ -80,7 +81,7 @@ class CartItem(models.Model):
 class Favorite(models.Model):
     """Избранное: пользователь ↔ лекарство (без услуг)."""
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        UserProfile,
         on_delete=models.CASCADE,
         related_name="favorites"
     )
@@ -100,14 +101,13 @@ class Favorite(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.user.username} ♥ {self.medicine.name}"
+        return f"{self.user.user.username} ♥ {self.medicine.name}"
 
     @classmethod
     def toggle(cls, user, medicine):
         """Добавить/удалить из избранного. Возвращает (obj, created)."""
         favorite, created = cls.objects.get_or_create(user=user, medicine=medicine)
         if not created:
-            # уже было в избранном → убираем
             favorite.delete()
             return None, False
         return favorite, True
@@ -130,7 +130,7 @@ class Order(models.Model):
     ]
 
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        UserProfile,
         on_delete=models.CASCADE,
         related_name="orders"
     )

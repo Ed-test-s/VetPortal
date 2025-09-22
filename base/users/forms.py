@@ -1,0 +1,131 @@
+from django import forms
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
+from .models import UserProfile
+import re
+
+
+
+# === Авторизация (по email / телефону / логину) ===
+class EmailOrPhoneAuthenticationForm(AuthenticationForm):
+    username = forms.CharField(
+        label="Email или телефон или логин",
+        widget=forms.TextInput(attrs={
+            "autofocus": True,
+            "class": "form-control",
+            "placeholder": "Введите email, телефон или логин"
+        })
+    )
+    password = forms.CharField(
+        label="Пароль",
+        strip=False,
+        widget=forms.PasswordInput(attrs={
+            "class": "form-control",
+            "placeholder": "Введите пароль"
+        }),
+    )
+
+    def clean(self):
+        username = self.cleaned_data.get("username")
+        password = self.cleaned_data.get("password")
+
+        if username and password:
+            # Проверка email
+            try:
+                user_obj = User.objects.get(email=username)
+                username = user_obj.username
+            except User.DoesNotExist:
+                # Проверка телефона
+                try:
+                    user_obj = User.objects.get(userprofile__phone=username)
+                    username = user_obj.username
+                except User.DoesNotExist:
+                    pass  # логинимся по username напрямую
+
+            self.user_cache = authenticate(
+                self.request, username=username, password=password
+            )
+            if self.user_cache is None:
+                raise forms.ValidationError("Неверные данные для входа")
+
+        return self.cleaned_data
+
+
+# === Регистрация пользователя ===
+class CustomUserCreationForm(UserCreationForm):
+    username = forms.CharField(
+        label="Имя пользователя",
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "Придумайте логин"
+        })
+    )
+    email = forms.EmailField(
+        required=True,
+        label="Почта",
+        widget=forms.EmailInput(attrs={
+            "class": "form-control",
+            "placeholder": "Введите почту"
+        })
+    )
+    first_name = forms.CharField(
+        required=True,
+        label="Имя",
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "Введите имя"
+        })
+    )
+    last_name = forms.CharField(
+        required=True,
+        label="Фамилия",
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "Введите фамилию"
+        })
+    )
+    phone = forms.CharField(
+        required=True,
+        label="Телефон",
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "Введите номер телефона"
+        })
+    )
+    password1 = forms.CharField(
+        label="Пароль",
+        strip=False,
+        widget=forms.PasswordInput(attrs={
+            "class": "form-control",
+            "placeholder": "Введите пароль"
+        }),
+    )
+    password2 = forms.CharField(
+        label="Подтверждение пароля",
+        strip=False,
+        widget=forms.PasswordInput(attrs={
+            "class": "form-control",
+            "placeholder": "Повторите пароль"
+        }),
+    )
+
+    class Meta:
+        model = User
+        fields = ("username", "email", "first_name", "last_name", "phone", "password1", "password2")
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data["email"]
+        user.first_name = self.cleaned_data["first_name"]
+        user.last_name = self.cleaned_data["last_name"]
+
+        if commit:
+            user.save()
+            # создаём профиль
+            UserProfile.objects.create(
+                user=user,
+                phone=self.cleaned_data["phone"],
+                role=UserProfile.ROLE_CLIENT  # по умолчанию обычный пользователь
+            )
+        return user

@@ -27,7 +27,8 @@ urlpatterns = [
 
     path('', medicines_views.home, name="home"),
 
-    path('profile/', include('users.urls')),
+    path('users/', include('users.urls')),  # <--- здесь register, login, logout
+
     path('medicines/', include('medicines.urls')),
     path('clinics/', include('clinics.urls')),
     path('grooming/', include('grooming.urls')),

@@ -1,19 +1,10 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from .forms import EmailOrPhoneAuthenticationForm
 
-
-def register_view(request):
-    if request.method == "POST":
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect("home")
-    else:
-        form = UserCreationForm()
-    return render(request, "users/register.html", {"form": form})
+from .forms import CustomUserCreationForm
 
 
 def login_view(request):
@@ -38,6 +29,14 @@ def profile_view(request):
     return render(request, "users/profile.html")
 
 
-@login_required
-def favorites_view(request):
-    return render(request, "users/favorites.html")
+
+def register(request):
+    if request.method == "POST":
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)  # сразу авторизация после регистрации
+            return redirect("home")  # заменить на свою главную страницу (urls приложения medicines)
+    else:
+        form = CustomUserCreationForm()
+    return render(request, "users/register.html", {"form": form})

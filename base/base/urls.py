@@ -22,18 +22,32 @@ from django.conf.urls.static import static
 
 from medicines import views as medicines_views
 
+# urlpatterns = [
+#     path('admin/', admin.site.urls),
+#
+#     path('', medicines_views.home, name="home"),
+#
+#     path('users/', include('users.urls')),  # <--- здесь register, login, logout
+#
+#     path('medicines/', include('medicines.urls')),
+#     path('clinics/', include('clinics.urls')),
+#     path('grooming/', include('grooming.urls')),
+#     path('pharmacies/', include('pharmacies.urls')),
+#     path('orders/', include('orders.urls')),
+#     path('journal/', include('journal.urls')),
+# ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path("admin/", admin.site.urls),
 
-    path('', medicines_views.home, name="home"),
+    path("", medicines_views.home, name="home"),
 
-    path('users/', include('users.urls')),  # <--- здесь register, login, logout
-
-    path('medicines/', include('medicines.urls')),
-    path('clinics/', include('clinics.urls')),
-    path('grooming/', include('grooming.urls')),
-    path('pharmacies/', include('pharmacies.urls')),
-    path('orders/', include('orders.urls')),
-    path('journal/', include('journal.urls')),
+    path("users/", include("users.urls")),
+    path("orders/", include("orders.urls")),
+    path("journal/", include("journal.urls")),
+    path("medicines/", include("medicines.urls")),
+    path("pharmacies/", include("pharmacies.urls")),
+    path("clinics/", include("clinics.urls")),
+    path("grooming/", include("grooming.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

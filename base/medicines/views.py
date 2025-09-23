@@ -18,3 +18,7 @@ def medicine_list(request):
 
 def medicine_detail(request, slug):
     return render(request, "medicines/detail.html", {"slug": slug})
+
+
+def medicine_reviews(request, slug):
+    return render(request, "medicines/reviews.html", {"slug": slug})

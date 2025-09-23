@@ -40,3 +40,13 @@ def register(request):
     else:
         form = CustomUserCreationForm()
     return render(request, "users/register.html", {"form": form})
+
+
+@login_required
+def change_password_view(request):
+    return render(request, "users/change_password.html")
+
+
+@login_required
+def delete_account_view(request):
+    return render(request, "users/delete_account.html")

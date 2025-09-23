@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from .models import UserProfile
 import re
+from django.core.exceptions import ValidationError
 
 
 
@@ -114,6 +115,26 @@ class CustomUserCreationForm(UserCreationForm):
         model = User
         fields = ("username", "email", "first_name", "last_name", "phone", "password1", "password2")
 
+    # === ВАЛИДАЦИЯ ===
+    def clean_phone(self):
+        phone = self.cleaned_data.get("phone")
+        pattern = r"^(\+375|80)(25|29|33|44)\d{7}$"
+        if not re.match(pattern, phone):
+            raise ValidationError("Введите корректный номер: +375(25|29|33|44)XXXXXXX или 80XXXXXXXXX.")
+        return phone
+
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        if User.objects.filter(email=email).exists():
+            raise ValidationError("Пользователь с такой почтой уже зарегистрирован.")
+        return email
+
+    def clean_password1(self):
+        password = self.cleaned_data.get("password1")
+        if len(password) < 8 or not re.search(r"[A-Z]", password) or not re.search(r"\d", password):
+            raise ValidationError("Пароль должен содержать минимум 8 символов, хотя бы 1 заглавную букву и цифру.")
+        return password
+
     def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data["email"]
@@ -122,10 +143,11 @@ class CustomUserCreationForm(UserCreationForm):
 
         if commit:
             user.save()
-            # создаём профиль
+            # создание профиля
             UserProfile.objects.create(
                 user=user,
                 phone=self.cleaned_data["phone"],
                 role=UserProfile.ROLE_CLIENT  # по умолчанию обычный пользователь
             )
         return user
+

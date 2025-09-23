@@ -7,3 +7,4 @@ urlpatterns = [
     path("success/", views.order_success, name="order_success"),
     path("favorites/", views.favorites_view, name="favorites"),
 ]
+

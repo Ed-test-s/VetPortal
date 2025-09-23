@@ -17,7 +17,7 @@
 </head>
 <body class="d-flex flex-column min-vh-100">
 
-    <!-- 🔹 ШАПКА -->
+        <!-- 🔹 ШАПКА -->
     <header class="navbar navbar-expand-lg navbar-light bg-light shadow-sm py-3">
         <div class="container">
             <!-- ЛОГО -->
@@ -26,54 +26,78 @@
                 <span class="fw-bold fs-4">ВетПортал</span>
             </a>
 
-            <!-- Поисковая строка -->
-            <form class="d-none d-md-flex mx-auto w-50">
-                <input class="form-control" type="search" placeholder="Поиск лекарств, клиник, услуг..." aria-label="Search">
-            </form>
+            <!-- БУРГЕР (мобильный) -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
+                    aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-            <!-- Кнопки справа -->
-            <div class="d-flex align-items-center">
+            <div class="collapse navbar-collapse" id="mainNavbar">
+                <!-- Поиск (по центру на md+) -->
+                <form class="d-none d-md-flex mx-auto w-50" role="search" method="get" action="{% url 'medicine_list' %}">
+                    <input class="form-control me-2" type="search" name="q" placeholder="Поиск лекарств, клиник, услуг..."
+                           aria-label="Поиск">
+                    <button class="btn btn-outline-primary" type="submit">Найти</button>
+                </form>
 
-                {% if user.is_authenticated %}
-                    <!-- Профиль -->
-                    <a href="{% url 'profile' %}" class="btn btn-outline-primary me-2 d-flex align-items-center">
-                        <i class="bi bi-person-circle me-1"></i> Профиль
-                    </a>
+                <!-- Правые кнопки -->
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
+                    {% if user.is_authenticated %}
+                        <!-- Cart (иконка) -->
+                        <li class="nav-item me-2">
+                            <a class="btn btn-outline-success position-relative d-flex align-items-center"
+                               href="{% url 'cart' %}" title="Корзина">
+                                <i class="bi bi-cart3"></i>
+                                {% comment %} бейдж с количеством позиций (если есть) {% endcomment %}
+                                {% if user.cart.items.count %}
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                        {{ user.cart.items.count }}
+                                    </span>
+                                {% endif %}
+                            </a>
+                        </li>
 
-                    <!-- Избранные -->
-                    <a href="{% url 'favorites' %}" class="btn btn-outline-warning me-2 d-flex align-items-center">
-                        <i class="bi bi-star me-1"></i> Избранные
-                    </a>
+                        <!-- Profile dropdown -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown"
+                               role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-person-circle me-1 fs-5"></i>
+                                <span class="d-none d-md-inline">{{ user.username }}</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item" href="{% url 'profile' %}">Мой профиль</a></li>
+                                <li><a class="dropdown-item" href="{% url 'favorites' %}">Избранное</a></li>
 
-                    <!-- Корзина -->
-                    <a href="{% url 'cart' %}" class="btn btn-outline-success me-2 d-flex align-items-center">
-                        <i class="bi bi-cart3 me-1"></i> Корзина
-                    </a>
+                                {% comment %} Ролевые ссылки (если нужны) {% endcomment %}
+                                {% if user.profile.role == 'pharmacy_admin' %}
+                                    <li><a class="dropdown-item" href="{% url 'my_pharmacy' %}">Моя аптека</a></li>
+                                {% elif user.profile.role == 'grooming_admin' %}
+                                    <li><a class="dropdown-item" href="{% url 'my_grooming' %}">Мой салон</a></li>
+                                {% elif user.profile.role == 'clinic_admin' %}
+                                    <li><a class="dropdown-item" href="{% url 'my_clinic' %}">Моя клиника</a></li>
+                                {% elif user.profile.role == 'admin_portal' %}
+                                    <li><a class="dropdown-item" href="/admin/">Админ-панель</a></li>
+                                {% endif %}
 
-                    {% if user.profile.role == 'pharmacy_admin' %}
-                        <a href="{% url 'my_pharmacy' %}" class="btn btn-outline-secondary me-2">Моя аптека</a>
-                    {% elif user.profile.role == 'grooming_admin' %}
-                        <a href="{% url 'my_grooming' %}" class="btn btn-outline-secondary me-2">Мой салон</a>
-                    {% elif user.profile.role == 'clinic_admin' %}
-                        <a href="{% url 'my_clinic' %}" class="btn btn-outline-secondary me-2">Моя клиника</a>
-                    {% elif user.profile.role == 'admin_portal' %}
-                        <a href="/admin/" class="btn btn-dark me-2">Админ-панель</a>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="{% url 'logout' %}">Выйти</a></li>
+                            </ul>
+                        </li>
+
+                    {% else %}
+                        <!-- Гость -->
+                        <li class="nav-item me-2">
+                            <a class="btn btn-outline-primary" href="{% url 'login' %}">Войти</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-success" href="{% url 'register' %}">Регистрация</a>
+                        </li>
                     {% endif %}
-
-                    <!-- Выйти -->
-                    <a href="{% url 'logout' %}" class="btn btn-outline-danger d-flex align-items-center">
-                        <i class="bi bi-box-arrow-right me-1"></i> Выйти
-                    </a>
-
-                {% else %}
-                    <!-- Гость -->
-                    <a href="{% url 'login' %}" class="btn btn-outline-primary me-2">Войти</a>
-                    <a href="{% url 'register' %}" class="btn btn-success">Регистрация</a>
-                {% endif %}
+                </ul>
             </div>
-
         </div>
     </header>
+
 
     <!-- 🔹 ОСНОВНОЙ КОНТЕНТ -->
     <main class="flex-grow-1">

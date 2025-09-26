@@ -1,5 +1,6 @@
 from django.db import models, IntegrityError
 from utils import generate_unique_slug
+from django.db.models import Min
 
 
 def medicine_main_image_path(instance, filename):
@@ -71,6 +72,11 @@ class Medicine(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_min_price(self):
+        """Вернёт минимальную цену лекарства среди аптек"""
+        price = self.medicine_in_pharmacies.aggregate(min_price=Min("price"))["min_price"]
+        return price if price is not None else None
 
 
 class PharmacyImage(models.Model):

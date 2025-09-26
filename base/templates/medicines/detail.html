@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ medicine.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Верхний блок: фото + инфо -->
+    <div class="row bg-light p-3 rounded shadow-sm">
+        <div class="col-md-5">
+            {% if medicine.main_image %}
+                <img src="{{ medicine.main_image.url }}" class="img-fluid rounded shadow-sm" alt="{{ medicine.name }}">
+            {% else %}
+                <img src="{% static 'images/no-image.png' %}" class="img-fluid rounded shadow-sm" alt="Нет изображения">
+            {% endif %}
+        </div>
+
+        <div class="col-md-7">
+            <h2>{{ medicine.name }}</h2>
+            {% if medicine.manufacturer %}
+                <p><strong>Производитель:</strong> {{ medicine.manufacturer }}</p>
+            {% endif %}
+            <p><strong>Рецепт:</strong>
+                {% if medicine.is_prescription %}
+                    <span class="text-danger">Требуется</span>
+                {% else %}
+                    <span class="text-success">Не требуется</span>
+                {% endif %}
+            </p>
+
+            <!-- Кнопка избранного -->
+            {% if user.is_authenticated %}
+                <button class="btn btn-outline-danger toggle-favorite"
+                        data-medicine-id="{{ medicine.id }}">
+                    {% if is_favorite %}
+                        <i class="fas fa-heart text-danger"></i> Удалить из избранного
+                    {% else %}
+                        <i class="fas fa-heart"></i> В избранное
+                    {% endif %}
+                </button>
+            {% else %}
+                <a href="{% url 'login' %}" class="btn btn-outline-danger">
+                    Войдите, чтобы добавить в избранное
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Карусель изображений -->
+    {% if medicine.images.exists or medicine.main_image %}
+    <div id="medicineCarousel" class="carousel slide mt-4 shadow-sm" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            {% if medicine.main_image %}
+                <div class="carousel-item active">
+                    <img src="{{ medicine.main_image.url }}" class="d-block w-40 rounded" alt="{{ medicine.name }}">
+                </div>
+            {% endif %}
+            {% for img in medicine.images.all %}
+                <div class="carousel-item {% if not medicine.main_image and forloop.first %}active{% endif %}">
+                    <img src="{{ img.image.url }}" class="d-block w-40 rounded" alt="{{ medicine.name }}">
+                </div>
+            {% endfor %}
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#medicineCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#medicineCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon"></span>
+        </button>
+    </div>
+    {% endif %}
+
+    <!-- Описание и инструкция -->
+    <div class="card mt-4 shadow-sm">
+        <div class="card-body">
+            {% if medicine.description %}
+                <h5>Описание</h5>
+                <p>{{ medicine.description }}</p>
+            {% endif %}
+            {% if medicine.instruction %}
+                <h5>Инструкция по применению</h5>
+                <p>{{ medicine.instruction|linebreaks }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Таблица аптек -->
+    <h4 class="mt-5">Наличие в аптеках</h4>
+    <div class="table-responsive shadow-sm">
+        <table class="table table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Аптека</th>
+                    <th>Адрес</th>
+                    <th>Телефон</th>
+                    <th>Цена</th>
+                    <th>Наличие</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for pm in pharmacies %}
+                <tr>
+                    <td>{{ pm.pharmacy.name }}</td>
+                    <td>{{ pm.pharmacy.address }}</td>
+                    <td>{{ pm.pharmacy.phone }}</td>
+                    <td>{{ pm.price }} BYN</td>
+                    <td>
+                        {% if pm.in_stock %}
+                            ✅ ({{ pm.stock_qty }})
+                        {% else %}
+                            ❌ Нет в наличии
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if pm.in_stock %}
+                            <form method="post" action="{% url 'add_to_cart' pm.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-success">В корзину</button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted">Нет аптек с этим товаром</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- JS для избранного -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const favBtn = document.querySelector(".toggle-favorite");
+    if (favBtn) {
+        favBtn.addEventListener("click", function() {
+            fetch("{% url 'toggle_favorite' medicine.id %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "added") {
+                    favBtn.innerHTML = '<i class="fas fa-heart text-danger"></i> Удалить из избранного';
+                } else {
+                    favBtn.innerHTML = '<i class="fas fa-heart"></i> В избранное';
+                }
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

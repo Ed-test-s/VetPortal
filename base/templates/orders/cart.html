@@ -1,5 +1,32 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Корзина</h2>
-<p>Здесь будут товары из корзины.</p>
+<h2>Моя корзина</h2>
+{% if items %}
+<table>
+    <thead>
+        <tr>
+            <th>Лекарство</th>
+            <th>Цена</th>
+            <th>Количество</th>
+            <th>Сумма</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td>{{ item.pharmacy_medicine.medicine.name }}</td>
+            <td>{{ item.pharmacy_medicine.price }} BYN</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.total_price }} BYN</td>
+            <td>
+                <button class="remove-cart-btn" data-id="{{ item.id }}">❌</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>Корзина пуста.</p>
+{% endif %}
 {% endblock %}

@@ -39,7 +39,7 @@ class EmailOrPhoneAuthenticationForm(AuthenticationForm):
             except User.DoesNotExist:
                 # Проверка телефона
                 try:
-                    user_obj = User.objects.get(userprofile__phone=username)
+                    user_obj = User.objects.get(profile__phone=username)
                     username = user_obj.username
                 except User.DoesNotExist:
                     pass  # логинимся по username напрямую

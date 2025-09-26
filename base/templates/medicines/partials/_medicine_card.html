@@ -1,0 +1,50 @@
+{% load static %}
+
+<div class="col-12 col-sm-6 col-md-4">
+  <div class="card h-100 shadow-sm position-relative">
+
+    <!-- 🔹 Кнопка "Избранное" -->
+    {% if user.is_authenticated %}
+      <button
+        class="btn btn-light position-absolute top-0 end-0 m-2 rounded-circle shadow-sm toggle-favorite"
+        data-id="{{ med.id }}"
+        data-url="{% url 'toggle_favorite' med.id %}">
+        {% if med.is_favorite %}
+          <i class="bi bi-heart-fill text-danger"></i>
+        {% else %}
+          <i class="bi bi-heart"></i>
+        {% endif %}
+      </button>
+    {% endif %}
+
+
+    <!-- Фото -->
+    {% if med.main_image %}
+      <img src="{{ med.main_image.url }}" class="card-img-top object-fit-cover" style="height:300px;" alt="{{ med.name }}">
+    {% else %}
+      <img src="{% static 'images/no-image.png' %}" class="card-img-top object-fit-cover" style="height:300px;" alt="Нет фото">
+    {% endif %}
+
+    <!-- Инфо -->
+    <div class="card-body d-flex flex-column">
+      <h5 class="card-title">
+          <a href="{% url 'medicine_detail' med.slug %}" class="text-decoration-none text-dark">
+            {{ med.name }}
+          </a>
+      </h5>
+
+      <p class="text-success fw-bold mb-2">
+        {% if med.get_min_price %}
+          От {{ med.get_min_price }} р.
+        {% else %}
+          Нет в продаже
+        {% endif %}
+      </p>
+
+      <!-- 🔹 Подробнее -->
+      <a href="{% url 'medicine_detail' med.slug %}" class="btn btn-primary mt-auto">
+        Подробнее
+      </a>
+    </div>
+  </div>
+</div>

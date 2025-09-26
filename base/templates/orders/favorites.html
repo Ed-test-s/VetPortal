@@ -1,5 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Избранное</h2>
-<p>Здесь будут избранные товары.</p>
+<div class="container py-4">
+  <h2>Мои избранные лекарства</h2>
+
+  <div class="row g-4">
+  {% for med in favorites %}
+    {% include "medicines/partials/_medicine_card.html" %}
+  {% empty %}
+    <p>У вас пока нет избранных лекарств.</p>
+  {% endfor %}
+</div>
+</div>
 {% endblock %}

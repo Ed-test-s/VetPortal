@@ -3,6 +3,18 @@ from django.conf import settings
 from django.db import models, IntegrityError
 from utils import generate_unique_slug
 from users.models import UserProfile
+from multiselectfield import MultiSelectField
+
+
+DAYS_OF_WEEK = [
+    ('mon', 'Понедельник'),
+    ('tue', 'Вторник'),
+    ('wed', 'Среда'),
+    ('thu', 'Четверг'),
+    ('fri', 'Пятница'),
+    ('sat', 'Суббота'),
+    ('sun', 'Воскресенье'),
+]
 
 
 class Pharmacy(models.Model):
@@ -18,6 +30,10 @@ class Pharmacy(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    work_days = MultiSelectField(choices=DAYS_OF_WEEK, max_choices=7, blank=True)
+    open_at = models.TimeField("Время открытия", null=False, blank=True)
+    closed_at = models.TimeField("Время закрытия", null=False, blank=True)
 
     class Meta:
         unique_together = ("name", "address")

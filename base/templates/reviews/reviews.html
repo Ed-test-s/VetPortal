@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Отзывы о {{ medicine.name }}{% endblock %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Отзывы о {{ medicine.name }}</h2>
+        <a href="{% url 'add_review' medicine.slug %}" class="btn btn-primary">Добавить отзыв</a>
+    </div>
+
+    <a href="{% url 'medicine_detail' medicine.slug %}" class="btn btn-sm btn-outline-secondary mb-3">
+        ← Назад к товару
+    </a>
+
+    {% if reviews %}
+        <div class="list-group">
+            {% for review in reviews %}
+                <a href="{% url 'review_detail' medicine.slug review.id %}" class="list-group-item list-group-item-action mb-3 shadow-sm rounded">
+                    <div class="d-flex justify-content-between">
+                        <strong>Автор: {{ user.username }}</strong>
+                        <small class="text-muted">{{ review.created_at|date:"d.m.Y H:i" }}</small>
+                    </div>
+                    <p><strong>Оценка:</strong> {{ review.rating }}</p>
+                    <p class="mt-2">
+                        {{ review.text|truncatechars:200 }}
+                    </p>
+                </a>
+            {% empty %}
+                <p>Пока нет отзывов. Станьте первым!</p>
+            {% endfor %}
+        </div>
+
+
+    {% else %}
+        <p class="text-muted">Отзывов пока нет.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Отзыв о {{ medicine.name }}</h2>
+    <div class="card shadow-sm p-3">
+        <div class="d-flex justify-content-between">
+            <strong>Автор: {{ user.username }}</strong>
+            <small class="text-muted">{{ review.created_at|date:"d.m.Y H:i" }}</small>
+        </div>
+        <p><strong>Оценка:</strong> {{ review.rating }}</p>
+        <p>{{ review.text }}</p>
+
+        {% if review.images.all %}
+            <div class="mt-3">
+                <h6>Фотографии:</h6>
+                <div class="row">
+                    {% for img in review.images.all %}
+                        <div class="col-md-3 mb-2">
+                            <img src="{{ img.image.url }}" class="img-fluid rounded shadow-sm" alt="Фото отзыва">
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    <a href="{% url 'medicine_reviews' medicine.slug %}" class="btn btn-secondary mt-3">Назад к отзывам</a>
+</div>
+{% endblock %}

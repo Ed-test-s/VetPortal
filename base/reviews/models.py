@@ -1,6 +1,9 @@
-from django.conf import settings
 from django.db import models
 from users.models import UserProfile
+
+def review_image_path(instance, filename):
+    """Путь для сохранения картинок к отзывам"""
+    return f"reviews/{instance.review.id}/{filename}"
 
 
 class Review(models.Model):
@@ -33,3 +36,20 @@ class Review(models.Model):
 
     def __str__(self):
         return f"{self.user} — {self.medicine} ({self.rating})"
+
+
+class ReviewImage(models.Model):
+    """Доп. изображения для отзывов"""
+    review = models.ForeignKey(
+        Review,
+        on_delete=models.CASCADE,
+        related_name="images",
+        verbose_name="Отзыв",
+    )
+    image = models.ImageField(
+        upload_to=review_image_path,
+        verbose_name="Изображение",
+    )
+
+    def __str__(self):
+        return f"Изображение для отзыва {self.review.id}"

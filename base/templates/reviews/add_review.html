@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Добавить отзыв о {{ medicine.name }}</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ review_form.as_p }}
+            {{ image_form.as_p }}
+             <button type="submit" class="btn btn-success">Отправить</button>
+        </form>
+        <br>
+        <a href="{% url 'medicine_reviews' medicine.slug %}" class="btn btn-secondary">Отмена</a>
+    </form>
+</div>
+{% endblock %}

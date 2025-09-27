@@ -4,6 +4,7 @@ from django.db import IntegrityError
 from utils import generate_unique_slug
 from phonenumber_field.modelfields import PhoneNumberField
 from users.models import UserProfile
+from multiselectfield import MultiSelectField
 
 
 def grooming_service_main_image_path(instance, filename):
@@ -12,6 +13,17 @@ def grooming_service_main_image_path(instance, filename):
 
 def grooming_service_extra_image_path(instance, filename):
     return f"grooming/{instance.service.center.slug}/{instance.service.slug}/extra/{filename}"
+
+
+DAYS_OF_WEEK = [
+    ('mon', 'Понедельник'),
+    ('tue', 'Вторник'),
+    ('wed', 'Среда'),
+    ('thu', 'Четверг'),
+    ('fri', 'Пятница'),
+    ('sat', 'Суббота'),
+    ('sun', 'Воскресенье'),
+]
 
 
 class GroomingCenter(models.Model):
@@ -28,6 +40,10 @@ class GroomingCenter(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    work_days = MultiSelectField(choices=DAYS_OF_WEEK, max_choices=7, blank=True)
+    open_at = models.TimeField("Время открытия", null=False, blank=True)
+    closed_at = models.TimeField("Время закрытия", null=False, blank=True)
 
     class Meta:
         indexes = [

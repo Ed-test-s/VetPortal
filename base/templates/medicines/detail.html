@@ -19,6 +19,27 @@
             {% if medicine.manufacturer %}
                 <p><strong>Производитель:</strong> {{ medicine.manufacturer }}</p>
             {% endif %}
+
+            {% if total_reviews > 0 %}
+                <div class="mt-2">
+                    <strong>Рейтинг:</strong> {{ avg_rating|floatformat:2 }}
+                </div>
+                <div>
+                    <a href="{% url 'medicine_reviews' medicine.slug %}">
+                        {{ total_reviews }} отзыв(ов)
+                    </a>
+                </div>
+            {% else %}
+                <p class="text-muted">
+                    Нет отзывов —
+                    <a href="{% url 'add_review' medicine.slug %}">Добавить отзыв</a>
+                </p>
+            {% endif %}
+
+
+
+
+
             <p><strong>Рецепт:</strong>
                 {% if medicine.is_prescription %}
                     <span class="text-danger">Требуется</span>

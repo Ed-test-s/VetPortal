@@ -214,6 +214,53 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 </script>
 
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const downloadBtn = document.getElementById("download-json");
+  if (downloadBtn) {
+    downloadBtn.addEventListener("click", function() {
+      fetch("{% url 'download_json' %}", {
+        method: "GET",
+        headers: { "X-Requested-With": "XMLHttpRequest" }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "ok") {
+          // ✅ Создаём файл и скачиваем
+          const blob = new Blob([JSON.stringify(data.data, null, 2)], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = data.filename;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+
+          // ✅ Показываем тост
+          const toastContainer = document.querySelector(".toast-container");
+          const toastEl = document.createElement("div");
+          toastEl.className = "toast align-items-center text-bg-success border-0";
+          toastEl.setAttribute("role", "alert");
+          toastEl.setAttribute("aria-live", "assertive");
+          toastEl.setAttribute("aria-atomic", "true");
+          toastEl.innerHTML = `
+            <div class="d-flex">
+              <div class="toast-body">JSON с вашими данными успешно сформирован ✅</div>
+              <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                      data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+          `;
+          toastContainer.appendChild(toastEl);
+          const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+          toast.show();
+        }
+      });
+    });
+  }
+});
+</script>
+
 
 </body>
 </html>

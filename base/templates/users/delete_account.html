@@ -5,12 +5,12 @@
 
 <p class="text-muted">Вы можете скачать копию своих данных в формате JSON или полностью удалить аккаунт.</p>
 
-<form method="post" class="mb-3">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="download">
-    <button type="submit" class="btn btn-info">Скачать данные (JSON)</button>
-</form>
+<!-- 🔹 Скачать JSON -->
+<button id="download-json" type="button" class="btn btn-outline-secondary mb-3">
+    Скачать JSON
+</button>
 
+<!-- 🔹 Удалить аккаунт -->
 <form method="post" onsubmit="return confirm('Вы уверены, что хотите удалить аккаунт? Это действие необратимо!');">
     {% csrf_token %}
     <input type="hidden" name="action" value="delete">

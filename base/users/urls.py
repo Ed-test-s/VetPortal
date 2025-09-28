@@ -11,4 +11,7 @@ urlpatterns = [
     path("profile/", views.profile_view, name="profile"),
     path("profile/changepassword/", views.change_password_view, name="change_password"),
     path("profile/deleteaccount/", views.delete_account_view, name="delete_account"),
+
+    path("download-json/", views.download_json, name="download_json"),
+    path("profile/download-json/", views.download_json_view, name="download_json"),
 ]

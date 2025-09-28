@@ -5,12 +5,14 @@ from .forms import EmailOrPhoneAuthenticationForm
 
 from .forms import CustomUserCreationForm
 
-import json
 from django.http import HttpResponse
 from django.contrib.auth import update_session_auth_hash
 
 from .forms import ProfileUpdateForm, CustomPasswordChangeForm
 from django.contrib import messages
+
+from django.http import JsonResponse
+import json
 
 
 
@@ -38,7 +40,7 @@ def register(request):
         if form.is_valid():
             user = form.save()
             login(request, user)  # сразу авторизация после регистрации
-            return redirect("home")  # заменить на свою главную страницу (urls приложения medicines)
+            return redirect("home")
     else:
         form = CustomUserCreationForm()
     return render(request, "users/register.html", {"form": form})
@@ -74,7 +76,6 @@ def delete_account_view(request):
                 "phone": str(request.user.profile.phone) if request.user.profile.phone else None,
                 "role": request.user.profile.get_role_display(),
             }
-            messages.info(request, "JSON с вашими данными успешно сформирован 📥")
             response = HttpResponse(json.dumps(data, ensure_ascii=False, indent=4), content_type="application/json")
             response["Content-Disposition"] = f'attachment; filename="{request.user.username}_backup.json"'
             return response
@@ -108,29 +109,36 @@ def change_password_view(request):
     return render(request, "users/change_password.html", {"form": form})
 
 
-# @login_required
-# def delete_account_view(request):
-#     if request.method == "POST":
-#         action = request.POST.get("action")
-#
-#         if action == "download":
-#             # Скачать JSON с данными
-#             data = {
-#                 "username": request.user.username,
-#                 "first_name": request.user.first_name,
-#                 "last_name": request.user.last_name,
-#                 "email": request.user.email,
-#                 "phone": str(request.user.profile.phone) if request.user.profile.phone else None,
-#                 "role": request.user.profile.get_role_display(),
-#             }
-#             response = HttpResponse(json.dumps(data, ensure_ascii=False, indent=4), content_type="application/json")
-#             response["Content-Disposition"] = f'attachment; filename="{request.user.username}_backup.json"'
-#             return response
-#
-#         elif action == "delete":
-#             # Удалить аккаунт
-#             request.user.delete()
-#             logout(request)
-#             return redirect("home")  # куда отправляем после удаления
-#
-#     return render(request, "users/delete_account.html")
+
+@login_required
+def download_json(request):
+    profile = request.user.profile
+    data = {
+        "username": request.user.username,
+        "email": request.user.email,
+        "first_name": request.user.first_name,
+        "last_name": request.user.last_name,
+        "phone": profile.phone,
+        "address": profile.address,
+    }
+
+    response = JsonResponse({"status": "ok", "filename": "user_data.json", "data": data})
+    return response
+
+
+@login_required
+def download_json_view(request):
+    data = {
+        "username": request.user.username,
+        "first_name": request.user.first_name,
+        "last_name": request.user.last_name,
+        "email": request.user.email,
+        "phone": str(request.user.profile.phone) if request.user.profile.phone else None,
+        "role": request.user.profile.get_role_display(),
+    }
+    return JsonResponse({
+        "status": "ok",
+        "filename": f"{request.user.username}_backup.json",
+        "data": data
+    })
+

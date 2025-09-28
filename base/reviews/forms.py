@@ -24,3 +24,8 @@ class ReviewImageForm(forms.ModelForm):
         widgets = {
             "image": MultiFileInput(attrs={"class": "form-control", "multiple": True}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["image"].required = False
+

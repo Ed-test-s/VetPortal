@@ -10,7 +10,9 @@ from reviews.forms import ReviewForm, ReviewImageForm
 from django.db.models import Avg, Count
 
 from django.contrib.auth.decorators import login_required
-from django.contrib import messages
+
+from django.http import HttpResponse
+
 
 
 
@@ -90,7 +92,6 @@ def medicine_reviews(request, slug):
         "medicine": medicine,
         "reviews": reviews,
         "stars_range": range(1, 6),
-        "user": request.user,
     })
 
 
@@ -99,18 +100,23 @@ def medicine_reviews(request, slug):
 def add_review(request, slug):
     medicine = get_object_or_404(Medicine, slug=slug)
 
+    # Проверка: уже есть отзыв от этого юзера?
+    if Review.objects.filter(user=request.user.profile, medicine=medicine).exists():
+        return HttpResponse(
+            f"<script>alert('Вы уже оставляли отзыв на этот товар!');"
+            f"window.location.href='{redirect('medicine_reviews', slug=medicine.slug).url}';</script>"
+        )
+
     if request.method == "POST":
         review_form = ReviewForm(request.POST)
         image_form = ReviewImageForm(request.POST, request.FILES)
 
         if review_form.is_valid():
-            # Создаем сам отзыв
             review = review_form.save(commit=False)
             review.user = request.user.profile
             review.medicine = medicine
             review.save()
 
-            # Обработка множества файлов
             for file in request.FILES.getlist("image"):
                 ReviewImage.objects.create(review=review, image=file)
 
@@ -127,14 +133,12 @@ def add_review(request, slug):
 
 
 
-
 def review_detail(request, slug, review_id):
     medicine = get_object_or_404(Medicine, slug=slug)
     review = get_object_or_404(Review, id=review_id, medicine=medicine)
     return render(request, "reviews/review_detail.html", {
         "medicine": medicine,
         "review": review,
-        "user": request.user,
     })
 
 

@@ -1,6 +1,7 @@
 from django.db import models
 from users.models import UserProfile
 
+
 def review_image_path(instance, filename):
     """Путь для сохранения картинок к отзывам"""
     return f"reviews/{instance.review.id}/{filename}"
@@ -33,6 +34,11 @@ class Review(models.Model):
         ordering = ["-created_at"]
         verbose_name = "Отзыв"
         verbose_name_plural = "Отзывы"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "medicine"], name="unique_user_medicine_review"
+            )
+        ]
 
     def __str__(self):
         return f"{self.user} — {self.medicine} ({self.rating})"
@@ -49,6 +55,8 @@ class ReviewImage(models.Model):
     image = models.ImageField(
         upload_to=review_image_path,
         verbose_name="Изображение",
+        blank=True,
+        null=True,  # чтобы в базе можно было хранить NULL
     )
 
     def __str__(self):

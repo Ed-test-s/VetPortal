@@ -18,7 +18,7 @@
             {% for review in reviews %}
                 <a href="{% url 'review_detail' medicine.slug review.id %}" class="list-group-item list-group-item-action mb-3 shadow-sm rounded">
                     <div class="d-flex justify-content-between">
-                        <strong>Автор: {{ user.username }}</strong>
+                        <strong>Автор: {{ review.user.user.username }}</strong>
                         <small class="text-muted">{{ review.created_at|date:"d.m.Y H:i" }}</small>
                     </div>
                     <p><strong>Оценка:</strong> {{ review.rating }}</p>

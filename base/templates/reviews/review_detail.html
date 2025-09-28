@@ -4,7 +4,7 @@
     <h2>Отзыв о {{ medicine.name }}</h2>
     <div class="card shadow-sm p-3">
         <div class="d-flex justify-content-between">
-            <strong>Автор: {{ user.username }}</strong>
+            <strong>Автор: {{ review.user.user.username }}</strong>
             <small class="text-muted">{{ review.created_at|date:"d.m.Y H:i" }}</small>
         </div>
         <p><strong>Оценка:</strong> {{ review.rating }}</p>

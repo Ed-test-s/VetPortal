@@ -119,6 +119,12 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# куда редиректить, если пользователь не авторизован
+LOGIN_URL = "/users/login/"
+
+# куда перенаправлять после успешного логина
+LOGIN_REDIRECT_URL = "/"
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/

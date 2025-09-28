@@ -1,1 +1,10 @@
-<a>Страниц нищего профиля</a>
+{% extends "users/profile_base.html" %}
+
+{% block profile_content %}
+<h4 class="mb-3">Личные данные</h4>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Сохранить изменения</button>
+</form>
+{% endblock %}

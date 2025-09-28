@@ -6,6 +6,8 @@ from .models import UserProfile
 import re
 from django.core.exceptions import ValidationError
 
+from django.contrib.auth.forms import PasswordChangeForm
+
 
 
 # === Авторизация (по email / телефону / логину) ===
@@ -150,4 +152,50 @@ class CustomUserCreationForm(UserCreationForm):
                 role=UserProfile.ROLE_CLIENT  # по умолчанию обычный пользователь
             )
         return user
+
+
+class ProfileUpdateForm(forms.ModelForm):
+    first_name = forms.CharField(label="Имя", required=True, widget=forms.TextInput(attrs={"class": "form-control"}))
+    last_name = forms.CharField(label="Фамилия", required=True, widget=forms.TextInput(attrs={"class": "form-control"}))
+    email = forms.EmailField(label="Почта", required=True, widget=forms.EmailInput(attrs={"class": "form-control"}))
+
+    class Meta:
+        model = UserProfile
+        fields = ["phone"]
+
+        widgets = {
+            "phone": forms.TextInput(attrs={"class": "form-control"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+        if user:
+            self.fields["first_name"].initial = user.first_name
+            self.fields["last_name"].initial = user.last_name
+            self.fields["email"].initial = user.email
+
+    def save(self, user, commit=True):
+        user.first_name = self.cleaned_data["first_name"]
+        user.last_name = self.cleaned_data["last_name"]
+        user.email = self.cleaned_data["email"]
+        if commit:
+            user.save()
+            super().save(commit=True)
+        return user
+
+
+class CustomPasswordChangeForm(PasswordChangeForm):
+    old_password = forms.CharField(
+        label="Старый пароль",
+        widget=forms.PasswordInput(attrs={"class": "form-control"})
+    )
+    new_password1 = forms.CharField(
+        label="Новый пароль",
+        widget=forms.PasswordInput(attrs={"class": "form-control"})
+    )
+    new_password2 = forms.CharField(
+        label="Подтвердите новый пароль",
+        widget=forms.PasswordInput(attrs={"class": "form-control"})
+    )
 

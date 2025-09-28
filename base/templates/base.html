@@ -104,6 +104,7 @@
     </div>
 </header>
 
+
 <!-- 🔹 ОСНОВНОЙ КОНТЕНТ -->
 <main class="flex-grow-1">
     <div class="container py-4">
@@ -129,6 +130,9 @@
         </div>
     </div>
 </footer>
+
+
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -182,6 +186,33 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 </script>
 
+<!-- Toast container -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="toast align-items-center text-bg-{{ message.tags|default:'primary' }} border-0"
+                 role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        {{ message }}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                            data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const toastElList = [].slice.call(document.querySelectorAll('.toast'));
+    toastElList.forEach(function(toastEl) {
+        const toast = new bootstrap.Toast(toastEl);
+        toast.show();
+    });
+});
+</script>
 
 
 </body>

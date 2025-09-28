@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+<!-- МЕСТО ПОД ПОЯВЛЕНИЕ УВЕДОМЛЕНИЙ, НАПРИМЕР О СМЕНЕ ПАРОЛЯ -->
+<!-- Toast container -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+  {% if messages %}
+    {% for message in messages %}
+      <div class="toast align-items-center text-bg-{{ message.tags }} border-0"
+           role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
+        <div class="d-flex">
+          <div class="toast-body">
+            {{ message }}
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                  data-bs-dismiss="toast" aria-label="Закрыть"></button>
+        </div>
+      </div>
+    {% endfor %}
+  {% endif %}
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const toastElList = [].slice.call(document.querySelectorAll('.toast'));
+  toastElList.forEach(function(toastEl) {
+    const toast = new bootstrap.Toast(toastEl);
+    toast.show();
+  });
+});
+</script>
+
+
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- ЛЕВАЯ ПАНЕЛЬ -->
+        <div class="col-md-3">
+            <div class="list-group">
+                <a href="{% url 'profile' %}" class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                    Личные данные
+                </a>
+                <a href="{% url 'change_password' %}" class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'change_password' %}active{% endif %}">
+                    Смена пароля
+                </a>
+                <a href="{% url 'delete_account' %}" class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'delete_account' %}active{% endif %}">
+                    Удалить аккаунт
+                </a>
+            </div>
+        </div>
+
+        <!-- ПРАВАЯ ПАНЕЛЬ -->
+        <div class="col-md-9">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    {% block profile_content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+

@@ -9,6 +9,7 @@ urlpatterns = [
 
     path("cart/add/<int:pharmacy_medicine_id>/", views.add_to_cart, name="add_to_cart"),
     path("cart/remove/<int:item_id>/", views.remove_from_cart, name="remove_from_cart"),
+    path("cart/update/<int:item_id>/", views.update_cart_item, name="update_cart_item"),
 
     path("favorites/", views.favorites_view, name="favorites"),
     path("favorites/toggle/<int:medicine_id>/", views.toggle_favorite, name="toggle_favorite"),

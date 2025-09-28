@@ -1,32 +1,180 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block content %}
-<h2>Моя корзина</h2>
-{% if items %}
-<table>
-    <thead>
-        <tr>
-            <th>Лекарство</th>
-            <th>Цена</th>
-            <th>Количество</th>
-            <th>Сумма</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for item in items %}
-        <tr>
-            <td>{{ item.pharmacy_medicine.medicine.name }}</td>
-            <td>{{ item.pharmacy_medicine.price }} BYN</td>
-            <td>{{ item.quantity }}</td>
-            <td>{{ item.total_price }} BYN</td>
-            <td>
-                <button class="remove-cart-btn" data-id="{{ item.id }}">❌</button>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-{% else %}
-<p>Корзина пуста.</p>
-{% endif %}
+<div class="row mb-3">
+  <div class="col-md-9">
+    <h2 class="mb-3">Моя корзина</h2>
+
+    {% if groups %}
+      {% for pharmacy, items_in_pharmacy in groups %}
+        <div class="card mb-4 shadow-sm">
+          <div class="card-header bg-light fw-bold">
+            {{ pharmacy.name }}
+            {% if pharmacy.address %} — <small class="text-muted">{{ pharmacy.address }}</small>{% endif %}
+          </div>
+
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table mb-0 align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th style="width:36px;"><input type="checkbox" class="select-all-pharmacy"></th>
+                    <th>Лекарство</th>
+                    <th style="width:120px;">Цена</th>
+                    <th style="width:160px;">Количество</th>
+                    <th style="width:140px;">Сумма</th>
+                    <th style="width:80px;"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in items_in_pharmacy %}
+                  <tr data-id="{{ item.id }}">
+                    <td><input type="checkbox" class="item-check" data-id="{{ item.id }}"></td>
+                    <td>
+                      <strong>{{ item.pharmacy_medicine.medicine.name }}</strong>
+                      <div class="small text-muted">{{ item.pharmacy_medicine.medicine.manufacturer }}</div>
+                    </td>
+                    <td>{{ item.pharmacy_medicine.price|floatformat:2 }} BYN</td>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <button class="btn btn-sm btn-outline-secondary update-btn"
+                                data-action="minus"
+                                data-url="{% url 'update_cart_item' item.id %}">−</button>
+                        <span class="mx-2 quantity">{{ item.quantity }}</span>
+                        <button class="btn btn-sm btn-outline-secondary update-btn"
+                                data-action="plus"
+                                data-url="{% url 'update_cart_item' item.id %}">+</button>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="item-total" data-total="{{ item.total_price|floatformat:2 }}">{{ item.total_price|floatformat:2 }} BYN</span>
+                    </td>
+                    <td>
+                      <button class="btn btn-sm btn-outline-danger remove-cart-btn"
+                              data-url="{% url 'remove_from_cart' item.id %}">🗑</button>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="text-muted">Корзина пуста.</p>
+    {% endif %}
+  </div>
+
+  {% if groups %}
+  <div class="col-md-3">
+    <div id="cart-summary" class="card shadow-sm mb-3" style="z-index:10;">
+      <div class="card-body p-3">
+        <h6 class="mb-2">Итог</h6>
+        <div class="mb-1 small text-muted">Выбрано позиций: <span id="selected-count">0</span></div>
+        <div class="mb-3 fw-bold">Сумма: <span id="selected-sum">0.00</span> BYN</div>
+        <button id="checkout-btn" class="btn btn-success w-100" disabled>Оформить заказ</button>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+
+
+
+
+
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let cookie of cookies) {
+        cookie = cookie.trim();
+        if (cookie.startsWith(name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  const csrftoken = getCookie("csrftoken");
+
+  function recalcSummary() {
+    let total = 0, count = 0;
+    document.querySelectorAll(".item-check:checked").forEach(ch => {
+      const row = ch.closest("tr");
+      const t = parseFloat(row.querySelector(".item-total").dataset.total || "0");
+      if (!isNaN(t)) { total += t; count++; }
+    });
+    document.getElementById("selected-sum").innerText = total.toFixed(2);
+    document.getElementById("selected-count").innerText = count;
+    document.getElementById("checkout-btn").disabled = (count === 0);
+  }
+
+  // плюс/минус
+  document.querySelectorAll(".update-btn").forEach(btn => {
+    btn.addEventListener("click", function() {
+      const row = this.closest("tr");
+      fetch(this.dataset.url, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": csrftoken,
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        body: new URLSearchParams({ action: this.dataset.action })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.status === "ok") {
+          row.querySelector(".quantity").innerText = data.quantity;
+          row.querySelector(".item-total").dataset.total = data.total.toFixed(2);
+          row.querySelector(".item-total").innerText = data.total.toFixed(2) + " BYN";
+          recalcSummary();
+        }
+      });
+    });
+  });
+
+  // удалить
+  document.querySelectorAll(".remove-cart-btn").forEach(btn => {
+    btn.addEventListener("click", function() {
+      const row = this.closest("tr");
+      if (!confirm("Удалить позицию из корзины?")) return;
+      fetch(this.dataset.url, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": csrftoken,
+          "X-Requested-With": "XMLHttpRequest"
+        }
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.status === "ok") {
+          row.remove();
+          recalcSummary();
+        }
+      });
+    });
+  });
+
+  // чекбоксы
+  document.querySelectorAll(".item-check").forEach(ch => ch.addEventListener("change", recalcSummary));
+  document.querySelectorAll(".select-all-pharmacy").forEach(ch => {
+    ch.addEventListener("change", function() {
+      this.closest("table").querySelectorAll(".item-check").forEach(cb => cb.checked = this.checked);
+      recalcSummary();
+    });
+  });
+
+  recalcSummary();
+});
+</script>
 {% endblock %}

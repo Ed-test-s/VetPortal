@@ -37,3 +37,5 @@ pytest-django==4.8.0
 Django>=5.0,<6.0
 Pillow
 django-phonenumber-field==8.1.0
+
+qrcode==8.2

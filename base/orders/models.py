@@ -134,12 +134,6 @@ class Order(models.Model):
         on_delete=models.CASCADE,
         related_name="orders"
     )
-    pharmacy = models.ForeignKey(
-        "pharmacies.Pharmacy",
-        on_delete=models.PROTECT,
-        related_name="orders",
-        verbose_name="Аптека"
-    )
     order_number = models.CharField(
         max_length=36,
         unique=True,
@@ -153,17 +147,39 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # --- новые поля для доставки/оплаты ---
+    DELIVERY_PICKUP = "pickup"
+    DELIVERY_COURIER = "courier"
+    DELIVERY_CHOICES = [
+        (DELIVERY_PICKUP, "Самовывоз"),
+        (DELIVERY_COURIER, "Курьер"),
+    ]
+    delivery_type = models.CharField(max_length=20, choices=DELIVERY_CHOICES, default=DELIVERY_PICKUP)
+
+    address = models.CharField(max_length=500, blank=True, null=True)
+    customer_name = models.CharField(max_length=255, blank=True, null=True)
+    customer_phone = models.CharField(max_length=64, blank=True, null=True)
+    customer_email = models.EmailField(blank=True, null=True)
+
+    PAYMENT_CASH = "cash"
+    PAYMENT_CARD = "card"
+    PAYMENT_CHOICES = [
+        (PAYMENT_CASH, "Наличными"),
+        (PAYMENT_CARD, "Картой при получении"),
+    ]
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_CHOICES, default=PAYMENT_CASH)
+
+    def __str__(self):
+        return f"Заказ {self.order_number}"
+
     class Meta:
         verbose_name = "Заказ"
         verbose_name_plural = "Заказы"
         indexes = [
             models.Index(fields=["user", "status"]),
-            models.Index(fields=["pharmacy", "status"]),
             models.Index(fields=["created_at"]),
         ]
 
-    def __str__(self):
-        return f"Заказ {self.order_number} ({self.pharmacy.name})"
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
@@ -189,6 +205,25 @@ class Order(models.Model):
         if save:
             super(Order, self).save(update_fields=["total_price"])
         return total
+
+
+# --- Новая модель: связь заказа с аптекой и pickup-кодом
+class OrderPickup(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="pickups")
+    # делаем Nullable — для courier будет pharmacy = None
+    pharmacy = models.ForeignKey("pharmacies.Pharmacy", on_delete=models.PROTECT, null=True, blank=True)
+    pickup_code = models.CharField(max_length=32, unique=True)  # код получения
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("order", "pharmacy")
+
+    def __str__(self):
+        if self.pharmacy:
+            return f"{self.order} → {self.pharmacy.name}: {self.pickup_code}"
+        return f"{self.order} → {self.pickup_code}"
+
+
 
 
 class OrderItem(models.Model):

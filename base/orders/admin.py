@@ -58,9 +58,9 @@ class OrderItemInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'pharmacy', 'status', 'total_price', 'created_at')
-    list_filter = ('status', 'pharmacy', 'created_at')
-    search_fields = ('user__username', 'pharmacy__name')
+    list_display = ('id', 'user', 'status', 'total_price', 'created_at')
+    list_filter = ('status', 'created_at')
+    search_fields = ('user__username',)
     inlines = [OrderItemInline]
     readonly_fields = ('order_number', 'total_price', 'status_updated_at', 'created_at', 'updated_at')
 

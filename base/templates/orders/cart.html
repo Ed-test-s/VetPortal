@@ -176,5 +176,47 @@ document.addEventListener("DOMContentLoaded", function() {
 
   recalcSummary();
 });
+
+
+     // твой JS для обработки ошибок status: "error"
+function updateCartItem(itemId, action) {
+    $.post("/cart/update/" + itemId + "/", { action: action, csrfmiddlewaretoken: csrftoken })
+        .done(function(response) {
+            if (response.status === "ok") {
+                // обновляем количество и цену
+                $("#item-qty-" + itemId).text(response.quantity);
+                $("#item-total-" + itemId).text(response.total.toFixed(2) + " ₽");
+                recalcTotal();
+            } else if (response.status === "error") {
+                alert(response.message);  // или красивый toastr/swal
+            }
+        });
+}
+
+
+document.addEventListener("DOMContentLoaded", function() {
+
+
+  // Обработка кнопки "Оформить заказ" — отправляем GET с selected_items
+const checkoutBtn = document.getElementById("checkout-btn");
+if (checkoutBtn) {
+  checkoutBtn.addEventListener("click", function() {
+    const checked = Array.from(document.querySelectorAll(".item-check:checked"));
+    if (checked.length === 0) {
+      alert("Выберите хотя бы одну позицию для оформления заказа.");
+      return;
+    }
+    const params = new URLSearchParams();
+    checked.forEach(ch => params.append("selected_items", ch.dataset.id));
+    // переходим на checkout с query params
+    window.location.href = "{% url 'checkout' %}?" + params.toString();
+  });
+}
+
+
+});
+
+
+
 </script>
 {% endblock %}

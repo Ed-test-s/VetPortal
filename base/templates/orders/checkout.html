@@ -1,5 +1,90 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Оформление заказа</h2>
-<p>Здесь будет форма оформления заказа.</p>
+<div class="container mt-4">
+  <h2 class="mb-3">Оформление заказа</h2>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <h4>Ваши товары</h4>
+    <ul class="list-group mb-3">
+      {% for item in items %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ item.pharmacy_medicine.medicine.name }}</strong>
+            <div class="small text-muted">{{ item.pharmacy_medicine.pharmacy.name }}</div>
+          </div>
+          <div>
+            {{ item.quantity }} × {{ item.pharmacy_medicine.price|floatformat:2 }} BYN
+            <div class="small text-muted">Сумма: {{ item.total_price|floatformat:2 }} BYN</div>
+          </div>
+        </li>
+
+        {# скрытая метка выбранных item id #}
+        <input type="hidden" name="selected_items" value="{{ item.id }}">
+      {% endfor %}
+    </ul>
+
+    <div class="alert alert-info">
+      Итоговая сумма: <strong>{{ total|floatformat:2 }} BYN</strong>
+    </div>
+
+    <h4>Контактные данные</h4>
+    <div class="mb-2">
+      <label>ФИО</label>
+      <input type="text" name="full_name" class="form-control" required value="{{ initial.full_name }}">
+    </div>
+    <div class="mb-2">
+      <label>Телефон</label>
+      <input type="text" name="phone" class="form-control" required value="{{ initial.phone }}">
+    </div>
+    <div class="mb-2">
+      <label>Email</label>
+      <input type="email" name="email" class="form-control" required value="{{ initial.email }}">
+    </div>
+
+    <h4>Доставка</h4>
+    <div class="form-check">
+      <input class="form-check-input" type="radio" name="delivery" value="pickup" id="del-pickup" checked>
+      <label class="form-check-label" for="del-pickup">Самовывоз</label>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="radio" name="delivery" value="courier" id="del-courier">
+      <label class="form-check-label" for="del-courier">Курьер</label>
+    </div>
+
+    <div class="mt-2" id="address-block" style="display:none">
+      <label>Адрес (если курьер)</label>
+      <input type="text" name="address" class="form-control">
+    </div>
+
+    <h4 class="mt-3">Оплата</h4>
+    <div class="form-check">
+      <input class="form-check-input" type="radio" name="payment" value="cash" id="pay-cash" checked>
+      <label class="form-check-label" for="pay-cash">Наличными</label>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="radio" name="payment" value="card" id="pay-card">
+      <label class="form-check-label" for="pay-card">Картой при получении</label>
+    </div>
+
+    <button type="submit" class="btn btn-success mt-3">Подтвердить заказ</button>
+  </form>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const courier = document.getElementById("del-courier");
+  const pickup = document.getElementById("del-pickup");
+  const addr = document.getElementById("address-block");
+
+  function toggleAddress() {
+    if (courier.checked) addr.style.display = "block";
+    else addr.style.display = "none";
+  }
+  courier.addEventListener("change", toggleAddress);
+  pickup.addEventListener("change", toggleAddress);
+  toggleAddress();
+});
+</script>
 {% endblock %}

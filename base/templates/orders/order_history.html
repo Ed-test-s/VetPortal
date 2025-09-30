@@ -7,24 +7,41 @@
 {% if orders %}
     <div class="list-group">
         {% for order in orders %}
-            <div class="list-group-item mb-3 shadow-sm rounded">
-                <div class="d-flex justify-content-between">
+            <div class="list-group-item mb-3 shadow-sm rounded position-relative">
+                <!-- stretched-link делает карточку кликабельной -->
+                <a href="{% url 'order_detail' order.id %}" class="stretched-link" aria-label="Открыть заказ {{ order.order_number }}"></a>
+
+                <div class="d-flex justify-content-between align-items-start">
                     <div>
                         <strong>Заказ №{{ order.order_number }}</strong><br>
-                        Аптека: {{ order.pharmacy.name }}<br>
-                        Дата: {{ order.created_at|date:"d.m.Y H:i" }}<br>
-                        Статус: <span class="badge bg-info">{{ order.get_status_display }}</span>
+                        <small class="text-muted">от {{ order.created_at|date:"d.m.Y H:i" }}</small><br>
+                        <span class="badge bg-info">{{ order.get_status_display }}</span>
                     </div>
-                    <div>
+                    <div class="text-end">
                         <strong>{{ order.total_price }} ₽</strong>
                     </div>
                 </div>
+
                 <hr>
-                <ul>
-                    {% for item in order.items.all %}
-                        <li>{{ item.pharmacy_medicine.medicine.name }} — {{ item.quantity }} шт. × {{ item.price_at_purchase }} ₽</li>
+
+                <p class="mb-1"><strong>Аптеки:</strong>
+                    {% for pickup in order.pickups.all %}
+                        {{ pickup.pharmacy.name }}{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                        <em>—</em>
                     {% endfor %}
-                </ul>
+                </p>
+
+                <p class="mb-1"><strong>Товары:</strong>
+                    {% for item in order.items.all %}
+                        {{ item.pharmacy_medicine.medicine.name }} &times; {{ item.quantity }}{% if not forloop.last %}; {% endif %}
+                    {% endfor %}
+                </p>
+
+                <p class="mb-0 small text-muted">
+                    <strong>Доставка:</strong> {{ order.get_delivery_type_display }} —
+                    <strong>Оплата:</strong> {{ order.get_payment_method_display }}
+                </p>
             </div>
         {% endfor %}
     </div>

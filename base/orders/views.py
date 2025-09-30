@@ -276,12 +276,12 @@ def checkout_view(request):
 
             # создаём pickup-коды
             if order.delivery_type == Order.DELIVERY_PICKUP:
-                pharmacies = {oi.pharmacy_medicine.pharmacy for oi in order.items.all()}
-                for ph in pharmacies:
-                    OrderPickup.objects.create(order=order, pharmacy=ph, pickup_code=generate_pickup_code())
+                pharmacies = set(item.pharmacy_medicine.pharmacy for item in cart.items.all())
+                for pharmacy in pharmacies:
+                    OrderPickup.objects.create(order=order, pharmacy=pharmacy)
             else:
                 # courier — один код без привязки к конкретной аптеке
-                OrderPickup.objects.create(order=order, pharmacy=None, pickup_code=generate_pickup_code())
+                OrderPickup.objects.create(order=order)
 
             # удаляем перенесённые позиции из корзины
             items_qs.delete()
@@ -300,9 +300,9 @@ def order_success(request, order_id):
     pickups_with_qr = []
     for p in pickups:
         pickups_with_qr.append({
-            "pickup_code": p.pickup_code,
+            "pickup_code": p.code,
             "pharmacy": p.pharmacy,
-            "qr": generate_qr_data_uri(p.pickup_code) if qrcode else None
+            "qr": generate_qr_data_uri(p.code) if qrcode else None
         })
 
     # список позиций
@@ -318,6 +318,36 @@ def order_success(request, order_id):
 
 @login_required
 def order_history(request):
-    orders = request.user.profile.orders.select_related("pharmacy").prefetch_related("items__pharmacy_medicine__medicine")
+    orders = (
+        Order.objects
+        .filter(user=request.user.profile)
+        .prefetch_related(
+            "items__pharmacy_medicine__medicine",
+            "items__pharmacy_medicine__pharmacy",
+            "pickups__pharmacy",
+        )
+        .order_by("-created_at")
+    )
     return render(request, "orders/order_history.html", {"orders": orders})
+
+
+
+
+@login_required
+def order_detail(request, order_id):
+    """
+    Страница подробного просмотра одного заказа.
+    Доступна только владельцу заказа (user.profile).
+    """
+    order = get_object_or_404(
+        Order.objects.prefetch_related(
+            "items__pharmacy_medicine__medicine",
+            "items__pharmacy_medicine__pharmacy",
+            "pickups__pharmacy",
+        ),
+        id=order_id,
+        user=request.user.profile
+    )
+
+    return render(request, "orders/order_detail.html", {"order": order})
 

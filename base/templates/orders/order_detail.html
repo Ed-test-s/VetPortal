@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Заказ №{{ order.order_number }}{% endblock %}
+
+{% block content %}
+<h2>Заказ №{{ order.order_number }}</h2>
+<p>Дата: {{ order.created_at|date:"d.m.Y H:i" }}</p>
+<p>Статус: <span class="badge bg-info">{{ order.get_status_display }}</span></p>
+<p>Тип доставки: {{ order.get_delivery_type_display }}</p>
+<hr>
+
+<h4>Коды для получения</h4>
+<div class="row">
+  {% for pickup in order.pickups.all %}
+    <div class="col-md-4 text-center mb-3">
+      {% if pickup.pharmacy %}
+        <p><strong>Аптека: {{ pickup.pharmacy.name }}</strong></p>
+      {% else %}
+        <p><strong>Код для курьера</strong></p>
+      {% endif %}
+
+      {% if pickup.qr_image %}
+        <img src="{{ pickup.qr_image.url }}" class="img-fluid mb-2" alt="QR код">
+      {% endif %}
+
+      <p>Код: <strong>{{ pickup.code }}</strong></p>
+    </div>
+  {% empty %}
+    <p class="text-muted">Кодов для получения нет</p>
+  {% endfor %}
+</div>
+
+<hr>
+<h4>Товары:</h4>
+<ul>
+  {% for item in order.items.all %}
+    <li>{{ item.pharmacy_medicine.medicine.name }} — {{ item.quantity }} шт. × {{ item.price_at_purchase }} ₽</li>
+  {% endfor %}
+</ul>
+
+<p><strong>Итоговая цена: {{ order.total_price }} ₽</strong></p>
+{% endblock %}

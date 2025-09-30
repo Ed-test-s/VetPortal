@@ -5,8 +5,12 @@ from users.models import UserProfile
 from .models import Cart
 
 
+
+
 # ✅ Автосоздание корзины для нового профиля
 @receiver(post_save, sender=UserProfile)
 def create_cart_for_new_user(sender, instance, created, **kwargs):
     if created:
         Cart.objects.get_or_create(user=instance)
+
+

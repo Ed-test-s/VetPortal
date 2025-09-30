@@ -6,6 +6,14 @@ import uuid
 from django.utils import timezone
 from users.models import UserProfile
 
+import qrcode
+from io import BytesIO
+from django.core.files.base import ContentFile
+from pharmacies.models import Pharmacy
+
+import random
+
+
 
 class Cart(models.Model):
     """Корзина пользователя (одна на пользователя)."""
@@ -209,19 +217,29 @@ class Order(models.Model):
 
 # --- Новая модель: связь заказа с аптекой и pickup-кодом
 class OrderPickup(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="pickups")
-    # делаем Nullable — для courier будет pharmacy = None
-    pharmacy = models.ForeignKey("pharmacies.Pharmacy", on_delete=models.PROTECT, null=True, blank=True)
-    pickup_code = models.CharField(max_length=32, unique=True)  # код получения
-    created_at = models.DateTimeField(auto_now_add=True)
+    order = models.ForeignKey("Order", on_delete=models.CASCADE, related_name="pickups")
+    pharmacy = models.ForeignKey("pharmacies.Pharmacy", null=True, blank=True, on_delete=models.CASCADE)
+    code = models.CharField(max_length=6, blank=True)
+    qr_image = models.ImageField(upload_to="qr_codes/", blank=True, null=True)
 
-    class Meta:
-        unique_together = ("order", "pharmacy")
+    def save(self, *args, **kwargs):
+        # генерируем код, если ещё не создан
+        if not self.code:
+            self.code = str(random.randint(100000, 999999))
+
+        # генерируем QR-код
+        qr = qrcode.make(self.code)
+        buffer = BytesIO()
+        qr.save(buffer, format="PNG")
+        file_name = f"order_{self.order_id}_pickup_{self.pharmacy_id or 'delivery'}.png"
+        self.qr_image.save(file_name, ContentFile(buffer.getvalue()), save=False)
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         if self.pharmacy:
-            return f"{self.order} → {self.pharmacy.name}: {self.pickup_code}"
-        return f"{self.order} → {self.pickup_code}"
+            return f"Самовывоз {self.pharmacy.name} — код {self.code}"
+        return f"Доставка — код {self.code}"
 
 
 
@@ -269,6 +287,7 @@ class OrderItem(models.Model):
 
     def total_price(self):
         return self.price_at_purchase * self.quantity
+
 
 
 

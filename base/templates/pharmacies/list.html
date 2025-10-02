@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Список аптек{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h1 class="mb-4">Аптеки</h1>
+
+    {% if pharmacies %}
+    <div class="table-responsive">
+        <table class="table table-hover table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Название</th>
+                    <th>Адрес</th>
+                    <th>Телефон</th>
+                    <th>Дни работы</th>
+                    <th>Время работы</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pharmacy in pharmacies %}
+                <tr>
+                    <td>
+                        <a href="{% url 'pharmacy_detail' slug=pharmacy.slug %}">
+                            {{ pharmacy.name }}
+                        </a>
+                    </td>
+                    <td>{{ pharmacy.address }}</td>
+                    <td>{{ pharmacy.phone }}</td>
+                    <td>
+                        {% if pharmacy.work_days %}
+                            {{ pharmacy.get_work_days_display|default:"—" }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if pharmacy.open_at and pharmacy.closed_at %}
+                            {{ pharmacy.open_at|time:"H:i" }} – {{ pharmacy.closed_at|time:"H:i" }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <div class="alert alert-info">Аптек пока нет.</div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ pharmacy.name }}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h1 class="mb-3">{{ pharmacy.name }}</h1>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Информация</h5>
+            <p><strong>Адрес:</strong> {{ pharmacy.address }}</p>
+            <p><strong>Телефон:</strong> {{ pharmacy.phone }}</p>
+            {% if pharmacy.email %}
+                <p><strong>Email:</strong> {{ pharmacy.email }}</p>
+            {% endif %}
+            <p><strong>Дни работы:</strong>
+                {% if pharmacy.work_days %}
+                    {{ pharmacy.get_work_days_display }}
+                {% else %}
+                    Не указано
+                {% endif %}
+            </p>
+            <p><strong>Время работы:</strong>
+                {% if pharmacy.open_at and pharmacy.closed_at %}
+                    {{ pharmacy.open_at|time:"H:i" }} – {{ pharmacy.closed_at|time:"H:i" }}
+                {% else %}
+                    Не указано
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <!-- 🔹 Список товаров -->
+    <h2 class="mb-3">Товары в аптеке</h2>
+    <div class="row g-4">
+        {% for pm in medicines %}
+            {% include "pharmacies/partials/_pharmacy_medicine_card.html" %}
+        {% empty %}
+            <p>В этой аптеке пока нет доступных товаров.</p>
+        {% endfor %}
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'pharmacy_list' %}" class="btn btn-secondary">← Назад к списку</a>
+    </div>
+</div>
+{% endblock %}

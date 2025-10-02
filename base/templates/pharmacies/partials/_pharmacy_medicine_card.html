@@ -1,0 +1,40 @@
+{% load static %}
+
+<div class="col-12 col-sm-6 col-md-4">
+  <div class="card h-100 shadow-sm position-relative">
+
+    <!-- Фото -->
+    {% if pm.medicine.main_image %}
+      <img src="{{ pm.medicine.main_image.url }}" class="card-img-top object-fit-cover" style="height:300px;" alt="{{ pm.medicine.name }}">
+    {% else %}
+      <img src="{% static 'images/no-image.png' %}" class="card-img-top object-fit-cover" style="height:300px;" alt="Нет фото">
+    {% endif %}
+
+    <div class="card-body d-flex flex-column">
+      <h5 class="card-title">
+        <a href="{% url 'medicine_detail' pm.medicine.slug %}" class="text-decoration-none text-dark">
+          {{ pm.medicine.name }}
+        </a>
+      </h5>
+
+      <!-- Цена -->
+      <p class="text-success fw-bold mb-1">
+        {{ pm.price }} р.
+      </p>
+
+      <!-- Количество -->
+      <p class="mb-2">
+        {% if pm.in_stock %}
+          В наличии: {{ pm.stock_qty }}
+        {% else %}
+          <span class="text-danger">Нет в наличии</span>
+        {% endif %}
+      </p>
+
+      <!-- Подробнее -->
+      <a href="{% url 'medicine_detail' pm.medicine.slug %}" class="btn btn-primary mt-auto">
+        Подробнее
+      </a>
+    </div>
+  </div>
+</div>

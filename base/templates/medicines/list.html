@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Поиск лекарств{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Блок фильтров -->
+        <aside class="col-md-3 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Фильтры</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get">
+                        <!-- Категория -->
+                        <div class="mb-3">
+                            <label class="form-label">Категория</label>
+                            <select name="category" class="form-select">
+                                <option value="">Все</option>
+                                {% for cat in categories %}
+                                    <option value="{{ cat.slug }}" {% if selected_category == cat.slug %}selected{% endif %}>{{ cat.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Производитель -->
+                        <div class="mb-3">
+                            <label class="form-label">Производитель</label>
+                            <select name="manufacturer" class="form-select">
+                                <option value="">Все</option>
+                                {% for manuf in manufacturers %}
+                                    <option value="{{ manuf }}" {% if selected_manufacturer == manuf %}selected{% endif %}>{{ manuf }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Цена -->
+                        <div class="mb-3">
+                            <label class="form-label">Цена (BYN)</label>
+                            <div class="input-group">
+                                <input type="number" name="price_min" class="form-control" placeholder="от" value="{{ price_min }}">
+                                <input type="number" name="price_max" class="form-control" placeholder="до" value="{{ price_max }}">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Применить</button>
+                    </form>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Карточки лекарств -->
+        <div class="col-md-9">
+            <div class="row g-4">
+                {% for medicine in page_obj %}
+                    <div class="col-md-4">
+                        <div class="card h-100 shadow-sm">
+                            {% if medicine.main_image %}
+                                <img src="{{ medicine.main_image.url }}" class="card-img-top" alt="{{ medicine.name }}">
+                            {% else %}
+                                <img src="{% static 'images/no-image.png' %}" class="card-img-top" alt="Нет изображения">
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ medicine.name }}</h5>
+                                {% if medicine.category %}
+                                    <p class="text-muted small">{{ medicine.category.name }}</p>
+                                {% endif %}
+                                {% if medicine.manufacturer %}
+                                    <p class="small">Производитель: {{ medicine.manufacturer }}</p>
+                                {% endif %}
+                                {% if medicine.get_min_price %}
+                                    <p><strong>от {{ medicine.get_min_price }} BYN</strong></p>
+                                {% else %}
+                                    <p class="text-muted">Нет данных о цене</p>
+                                {% endif %}
+                                <a href="{% url 'medicine_detail' medicine.slug %}" class="btn btn-outline-primary btn-sm">Подробнее</a>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="col-12 text-center text-muted">
+                        Нет товаров по выбранным фильтрам
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Пагинация -->
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode|safe }}{% endif %}">Назад</a>
+                        </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item"><a class="page-link" href="?page={{ num }}{% if request.GET.urlencode %}&{{ request.GET.urlencode|safe }}{% endif %}">{{ num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode|safe }}{% endif %}">Вперёд</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+{% endblock %}

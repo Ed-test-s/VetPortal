@@ -1,15 +1,23 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
-from .models import Pharmacy
+from .models import Pharmacy, PharmacyMedicine
 
 
 def pharmacy_list(request):
-    return render(request, "pharmacies/list.html")
+    pharmacies = Pharmacy.objects.filter(is_active=True).order_by("name")
+    return render(request, "pharmacies/list.html", {"pharmacies": pharmacies})
+
 
 
 def pharmacy_detail(request, slug):
-    return render(request, "pharmacies/detail.html", {"slug": slug})
+    pharmacy = get_object_or_404(Pharmacy, slug=slug, is_active=True)
+    medicines = PharmacyMedicine.objects.filter(pharmacy=pharmacy, in_stock=True).select_related("medicine")
+    return render(request, "pharmacies/detail.html", {
+        "pharmacy": pharmacy,
+        "medicines": medicines,
+    })
+
 
 
 User = get_user_model()

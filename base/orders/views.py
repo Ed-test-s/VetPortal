@@ -150,12 +150,13 @@ def toggle_favorite(request, medicine_id):
     return JsonResponse({"status": "added"})
 
 
-# ВСЁ ЧТО СВЯЗАНО С ПЕРЕХОДОМ К ОФОРМЛЕНИЮ ЗАКАЗА
 
+# ВСЁ ЧТО СВЯЗАНО С ПЕРЕХОДОМ К ОФОРМЛЕНИЮ ЗАКАЗА
 
 
 def generate_pickup_code(length=6):
     return "".join(random.choices(string.ascii_uppercase + string.digits, k=length))
+
 
 def generate_qr_data_uri(text):
     """
@@ -171,8 +172,7 @@ def generate_qr_data_uri(text):
 
 
 
-
-# @transaction.atomic
+@transaction.atomic
 @login_required
 def checkout_view(request):
     """

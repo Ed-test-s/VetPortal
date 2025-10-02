@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Medicine
+from .models import Medicine, Category
 
 from orders.models import Favorite
 
@@ -7,13 +7,13 @@ from pharmacies.models import PharmacyMedicine
 
 from reviews.models import Review, ReviewImage
 from reviews.forms import ReviewForm, ReviewImageForm
-from django.db.models import Avg, Count
+from django.db.models import Min, Avg, Count
 
 from django.contrib.auth.decorators import login_required
 
 from django.http import HttpResponse
 
-
+from django.core.paginator import Paginator
 
 
 def home(request):
@@ -35,7 +35,45 @@ def home(request):
 
 
 def medicine_list(request):
-    return render(request, "medicines/list.html")
+    medicines = Medicine.objects.all().prefetch_related("images")
+
+    # фильтры
+    category_slug = request.GET.get("category")
+    manufacturer = request.GET.get("manufacturer")
+    price_min = request.GET.get("price_min")
+    price_max = request.GET.get("price_max")
+
+    if category_slug:
+        medicines = medicines.filter(category__slug=category_slug)
+    if manufacturer:
+        medicines = medicines.filter(manufacturer__icontains=manufacturer)
+    if price_min:
+        medicines = medicines.filter(medicine_in_pharmacies__price__gte=price_min)
+    if price_max:
+        medicines = medicines.filter(medicine_in_pharmacies__price__lte=price_max)
+
+    medicines = medicines.distinct()
+
+    # пагинация (21 товар)
+    paginator = Paginator(medicines, 21)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    # для фильтров
+    categories = Category.objects.all()
+    manufacturers = Medicine.objects.values_list("manufacturer", flat=True).distinct().exclude(manufacturer="")
+
+    context = {
+        "page_obj": page_obj,
+        "categories": categories,
+        "manufacturers": manufacturers,
+        "selected_category": category_slug,
+        "selected_manufacturer": manufacturer,
+        "price_min": price_min or "",
+        "price_max": price_max or "",
+    }
+    return render(request, "medicines/list.html", context)
+
 
 
 def medicine_detail(request, slug):

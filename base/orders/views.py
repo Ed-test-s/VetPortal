@@ -11,7 +11,7 @@ from django.contrib import messages
 from django.db import transaction
 from .models import Order, OrderItem, OrderPickup
 import random, string
-
+from django.urls import reverse
 
 import base64
 from io import BytesIO
@@ -290,6 +290,7 @@ def checkout_view(request):
         return redirect("order_success", order_id=order.id)
 
 
+
 @login_required
 def order_success(request, order_id):
     """
@@ -298,11 +299,21 @@ def order_success(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user.profile)
     pickups = order.pickups.select_related("pharmacy").all()
     pickups_with_qr = []
+
     for p in pickups:
+        if order.delivery_type == Order.DELIVERY_PICKUP and p.pharmacy:
+            # ссылка на страницу аптеки
+            qr_url = request.build_absolute_uri(
+                reverse("pharmacy_detail", args=[p.pharmacy.slug])
+            )
+        else:
+            # курьерская доставка → рикролл
+            qr_url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+
         pickups_with_qr.append({
             "pickup_code": p.code,
             "pharmacy": p.pharmacy,
-            "qr": generate_qr_data_uri(p.code) if qrcode else None
+            "qr": generate_qr_data_uri(qr_url) if qrcode else None,
         })
 
     # список позиций
@@ -313,6 +324,7 @@ def order_success(request, order_id):
         "pickups": pickups_with_qr,
         "items": items,
     })
+
 
 
 

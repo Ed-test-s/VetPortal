@@ -17,7 +17,6 @@
       </button>
     {% endif %}
 
-
     <!-- Фото -->
     {% if med.main_image %}
       <img src="{{ med.main_image.url }}" class="card-img-top object-fit-cover" style="height:300px;" alt="{{ med.name }}">
@@ -27,11 +26,17 @@
 
     <!-- Инфо -->
     <div class="card-body d-flex flex-column">
-      <h5 class="card-title">
-          <a href="{% url 'medicine_detail' med.slug %}" class="text-decoration-none text-dark">
-            {{ med.name }}
-          </a>
+      <h5 class="card-title mb-2 text-truncate">
+        <a href="{% url 'medicine_detail' med.slug %}" class="text-decoration-none text-dark d-inline-block w-100">
+          {{ med.name }}
+        </a>
       </h5>
+
+      {% if med.category %}
+        <p class="text-muted small mb-2 text-truncate">
+          Категория: {{ med.category.name }}
+        </p>
+      {% endif %}
 
       <p class="text-success fw-bold mb-2">
         {% if med.get_min_price %}

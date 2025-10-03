@@ -6,6 +6,10 @@
 <p>Дата: {{ order.created_at|date:"d.m.Y H:i" }}</p>
 <p>Статус: <span class="badge bg-info">{{ order.get_status_display }}</span></p>
 <p>Тип доставки: {{ order.get_delivery_type_display }}</p>
+
+{% if order.delivery_type == "courier" %}
+    <p><strong>Адрес доставки:</strong> {{ order.address }}</p>
+{% endif %}
 <hr>
 
 <h4>Коды для получения</h4>
@@ -13,7 +17,11 @@
   {% for pickup in order.pickups.all %}
     <div class="col-md-4 text-center mb-3">
       {% if pickup.pharmacy %}
-        <p><strong>Аптека: {{ pickup.pharmacy.name }}</strong></p>
+        <p><strong>Аптека:
+            <a href="{% url 'pharmacy_detail' pickup.pharmacy.slug %}">
+                {{ pickup.pharmacy.name }}
+            </a>
+        </strong></p>
       {% else %}
         <p><strong>Код для курьера</strong></p>
       {% endif %}
@@ -31,11 +39,28 @@
 
 <hr>
 <h4>Товары:</h4>
-<ul>
+<div class="list-group">
   {% for item in order.items.all %}
-    <li>{{ item.pharmacy_medicine.medicine.name }} — {{ item.quantity }} шт. × {{ item.price_at_purchase }} ₽</li>
+    <div class="list-group-item d-flex justify-content-between align-items-center">
+      <div>
+        <a href="{% url 'medicine_detail' item.pharmacy_medicine.medicine.slug %}">
+          {{ item.pharmacy_medicine.medicine.name }}
+        </a>
+        — {{ item.quantity }} шт. × {{ item.price_at_purchase }} ₽
+      </div>
+
+      {% if order.delivery_type == "pickup" %}
+        <div class="ms-3 text-muted">
+          Аптека:
+          <a href="{% url 'pharmacy_detail' item.pharmacy_medicine.pharmacy.slug %}">
+            {{ item.pharmacy_medicine.pharmacy.name }}
+          </a>
+        </div>
+      {% endif %}
+    </div>
   {% endfor %}
-</ul>
+</div>
+
 
 <p><strong>Итоговая цена: {{ order.total_price }} ₽</strong></p>
 {% endblock %}

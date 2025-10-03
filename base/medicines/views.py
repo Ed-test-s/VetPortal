@@ -3,7 +3,7 @@ from .models import Medicine, Category
 
 from orders.models import Favorite
 
-from pharmacies.models import PharmacyMedicine
+from pharmacies.models import Pharmacy, PharmacyMedicine
 
 from reviews.models import Review, ReviewImage
 from reviews.forms import ReviewForm, ReviewImageForm
@@ -14,6 +14,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 
 from django.core.paginator import Paginator
+from django.http import JsonResponse
 
 
 def home(request):
@@ -32,6 +33,40 @@ def home(request):
         "latest_medicines": latest_medicines
     }
     return render(request, "medicines/home.html", context)
+
+
+
+
+def search_suggestions(request):
+    q = request.GET.get("q", "").strip()
+    results = []
+
+    if q:
+        # Лекарства
+        medicines = Medicine.objects.filter(name__icontains=q).select_related("category")[:5]
+        for med in medicines:
+            results.append({
+                "type": "medicine",
+                "name": med.name,
+                "url": f"/medicines/{med.slug}/",
+                "icon": "💊",
+                "category": med.category.name if med.category else "",
+            })
+
+        # Аптеки
+        pharmacies = Pharmacy.objects.filter(name__icontains=q, is_active=True)[:5]
+        for ph in pharmacies:
+            results.append({
+                "type": "pharmacy",
+                "name": ph.name,
+                "url": f"/pharmacies/{ph.slug}/",
+                "icon": "🏥",
+                "address": ph.address,
+            })
+
+    return JsonResponse({"results": results})
+
+
 
 
 def medicine_list(request):

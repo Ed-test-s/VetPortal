@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.utils.html import format_html
 from .models import GroomingCenter, GroomingService, GroomingServiceImage
 
+from users.models import UserProfile
+
 
 class GroomingServiceImageInline(admin.TabularInline):
     model = GroomingServiceImage
@@ -18,6 +20,13 @@ class GroomingServiceImageInline(admin.TabularInline):
 @admin.register(GroomingCenter)
 class GroomingCenterAdmin(admin.ModelAdmin):
     list_display = ("name", "address", "phone", "owner", "is_active")
+
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "owner":
+            kwargs["queryset"] = UserProfile.objects.filter(role=UserProfile.ROLE_GROOMING)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
     prepopulated_fields = {"slug": ("name",)}
     search_fields = ("name", "address", "phone")
 

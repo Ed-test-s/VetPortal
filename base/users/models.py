@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from phonenumber_field.modelfields import PhoneNumberField
 
+from django.core.exceptions import ValidationError
+
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
@@ -34,3 +36,5 @@ class UserProfile(models.Model):
     @property
     def is_platform_admin(self):
         return self.role == self.ROLE_ADMIN_PORTAL
+
+

@@ -82,10 +82,23 @@ def medicine_list(request):
         medicines = medicines.filter(category__slug=category_slug)
     if manufacturer:
         medicines = medicines.filter(manufacturer__icontains=manufacturer)
-    if price_min:
-        medicines = medicines.filter(medicine_in_pharmacies__price__gte=price_min)
-    if price_max:
-        medicines = medicines.filter(medicine_in_pharmacies__price__lte=price_max)
+
+    # цена
+    try:
+        if price_min is not None and price_min != "":
+            price_min_val = float(price_min)
+            if price_min_val >= 0:
+                medicines = medicines.filter(medicine_in_pharmacies__price__gte=price_min_val)
+    except ValueError:
+        price_min_val = None
+
+    try:
+        if price_max is not None and price_max != "":
+            price_max_val = float(price_max)
+            if price_max_val >= 0:
+                medicines = medicines.filter(medicine_in_pharmacies__price__lte=price_max_val)
+    except ValueError:
+        price_max_val = None
 
     medicines = medicines.distinct()
 

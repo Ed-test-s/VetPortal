@@ -120,8 +120,9 @@ class CustomUserCreationForm(UserCreationForm):
     # === ВАЛИДАЦИЯ ===
     def clean_phone(self):
         phone = self.cleaned_data.get("phone")
-        pattern = r"^(\+375|80)(25|29|33|44)\d{7}$"
-        if not re.match(pattern, phone):
+        # Разрешаем 17 только при админском создании
+        allowed_pattern = r"^(\+375|80)(25|29|33|44)\d{7}$"
+        if not re.match(allowed_pattern, phone):
             raise ValidationError("Введите корректный номер: +375(25|29|33|44)XXXXXXX или 80XXXXXXXXX.")
         return phone
 

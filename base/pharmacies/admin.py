@@ -1,6 +1,8 @@
 from django.contrib import admin
 from .models import Pharmacy, PharmacyMedicine
 
+from users.models import UserProfile
+
 
 class PharmacyMedicineInline(admin.TabularInline):
     model = PharmacyMedicine
@@ -13,6 +15,12 @@ class PharmacyMedicineInline(admin.TabularInline):
 @admin.register(Pharmacy)
 class PharmacyAdmin(admin.ModelAdmin):
     list_display = ("name", "address", "phone", "owner", "is_active")
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "owner":
+            kwargs["queryset"] = UserProfile.objects.filter(role=UserProfile.ROLE_PHARMACY)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
     search_fields = ("name", "address", "phone")
     prepopulated_fields = {"slug": ("name",)}
     inlines = [PharmacyMedicineInline]

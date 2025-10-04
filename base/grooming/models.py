@@ -27,7 +27,7 @@ DAYS_OF_WEEK = [
 
 
 class GroomingCenter(models.Model):
-    owner = models.ForeignKey(UserProfile, on_delete=models.SET_NULL,
+    owner = models.OneToOneField(UserProfile, on_delete=models.SET_NULL,
                               null=True, blank=True, related_name="grooming_centers")
     name = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, blank=True, unique=True)
@@ -44,6 +44,15 @@ class GroomingCenter(models.Model):
     work_days = MultiSelectField(choices=DAYS_OF_WEEK, max_choices=7, blank=True)
     open_at = models.TimeField("Время открытия", null=False, blank=True)
     closed_at = models.TimeField("Время закрытия", null=False, blank=True)
+
+    def clean(self):
+        # Проверка: владелец уже где-то админ аптеки?
+        if self.owner and GroomingCenter.objects.exclude(id=self.id).filter(owner=self.owner).exists():
+            raise ValidationError("Этот пользователь уже является администратором другого груминг-салона.")
+
+        # Проверка: у юзера правильная роль
+        if self.owner and self.owner.role != UserProfile.ROLE_GROOMING:
+            raise ValidationError("Владелец груминг-салона должен иметь роль 'Администратор груминг-салона'.")
 
     class Meta:
         indexes = [

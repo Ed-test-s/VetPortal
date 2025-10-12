@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Добавить лекарство{% endblock %}
+{% block content %}
+<h2>Добавить новое лекарство</h2>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit" class="btn btn-success">Добавить</button>
+  <a href="{% url 'pharmacy_dashboard' %}" class="btn btn-secondary">Назад</a>
+</form>
+{% endblock %}

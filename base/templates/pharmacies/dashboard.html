@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Панель аптеки{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Панель управления аптекой — {{ pharmacy.name }}</h2>
+
+<form method="post" class="mb-5">
+  {% csrf_token %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">Информация об аптеке</div>
+    <div class="card-body">
+      {{ form.as_p }}
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-success text-white">Лекарства в аптеке</div>
+    <div class="card-body">
+      {{ formset.management_form }}
+      {% for f in formset %}
+        <div class="border rounded p-3 mb-3">
+          {{ f.as_p }}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-success">💾 Сохранить изменения</button>
+</form>
+
+<hr>
+<h4>Добавить новое лекарство</h4>
+<a href="{% url 'add_medicine' %}" class="btn btn-outline-primary">
+  ➕ Добавить лекарство
+</a>
+{% endblock %}

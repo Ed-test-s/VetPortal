@@ -60,7 +60,7 @@
                     <!-- 🔹 Ролевые кнопки (слева от корзины) -->
                     {% if user.profile.role == 'pharmacy_admin' %}
                         <li class="nav-item me-2">
-                            <a class="btn btn-outline-secondary" href="{% url 'my_pharmacy' %}">Моя аптека</a>
+                            <a class="btn btn-outline-secondary" href="{% url 'pharmacy_dashboard' %}">Моя аптека</a>
                         </li>
                     {% elif user.profile.role == 'grooming_admin' %}
                         <li class="nav-item me-2">

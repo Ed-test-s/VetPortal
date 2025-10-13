@@ -24,7 +24,6 @@ except Exception:
 
 # --- КОРЗИНА ---
 @login_required
-@login_required
 def add_to_cart(request, pharmacy_medicine_id):
     pm = get_object_or_404(PharmacyMedicine, id=pharmacy_medicine_id)
 

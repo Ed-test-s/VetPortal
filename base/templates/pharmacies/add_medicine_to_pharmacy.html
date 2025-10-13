@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Добавить лекарство в аптеку{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">🏥 Добавить лекарство в аптеку</h4>
+                    <small class="opacity-75">Добавление существующего лекарства в вашу аптеку</small>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.medicine.id_for_label }}" class="form-label">
+                                <i class="fas fa-pills"></i> {{ form.medicine.label }}
+                            </label>
+                            {{ form.medicine }}
+                            {% if form.medicine.errors %}
+                                <div class="text-danger">{{ form.medicine.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                <i class="fas fa-info-circle"></i> 
+                                Показываются только лекарства, которых еще нет в вашей аптеке
+                            </small>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.price.id_for_label }}" class="form-label">
+                                        <i class="fas fa-money-bill-wave"></i> {{ form.price.label }}
+                                    </label>
+                                    <div class="input-group">
+                                        {{ form.price }}
+                                        <span class="input-group-text">Br</span>
+                                    </div>
+                                    {% if form.price.errors %}
+                                        <div class="text-danger">{{ form.price.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">Цена в белорусских рублях</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.stock_qty.id_for_label }}" class="form-label">
+                                        <i class="fas fa-boxes"></i> {{ form.stock_qty.label }}
+                                    </label>
+                                    {{ form.stock_qty }}
+                                    {% if form.stock_qty.errors %}
+                                        <div class="text-danger">{{ form.stock_qty.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">Количество единиц на складе</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="form-check">
+                                {{ form.in_stock }}
+                                <label for="{{ form.in_stock.id_for_label }}" class="form-check-label">
+                                    <i class="fas fa-check-circle"></i> {{ form.in_stock.label }}
+                                </label>
+                            </div>
+                            {% if form.in_stock.errors %}
+                                <div class="text-danger">{{ form.in_stock.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Отметьте, если лекарство доступно для продажи</small>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="d-flex gap-2 justify-content-between">
+                            <div>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-plus"></i> Добавить в аптеку
+                                </button>
+                                <a href="{% url 'pharmacy_dashboard' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left"></i> Назад к панели
+                                </a>
+                            </div>
+                            <div class="text-muted">
+                                <small>Лекарство будет доступно для заказа клиентами</small>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #198754;
+    box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+}
+
+.form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+.form-label i {
+    margin-right: 8px;
+    color: #6c757d;
+}
+
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 10px 20px;
+}
+
+.card {
+    border-radius: 12px;
+    border: none;
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.input-group-text {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    font-weight: 600;
+    color: #495057;
+}
+
+.form-check-input:checked {
+    background-color: #198754;
+    border-color: #198754;
+}
+</style>
+{% endblock %}

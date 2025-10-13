@@ -10,7 +10,15 @@ def generate_unique_slug(model_instance, slug_field_name, slug_from_field):
     slug_field_name — имя поля slug в модели (строка)
     slug_from_field — имя поля, откуда берём текст (строка)
     """
-    slug = slugify(getattr(model_instance, slug_from_field))
+    # Получаем значение поля для генерации slug
+    source_value = getattr(model_instance, slug_from_field)
+    if not source_value:
+        return ""
+    
+    slug = slugify(source_value)
+    if not slug:
+        return ""
+        
     ModelClass = model_instance.__class__
     unique_slug = slug
     for i in itertools.count(1):

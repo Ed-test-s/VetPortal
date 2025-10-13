@@ -11,5 +11,6 @@ urlpatterns = [
     path("<slug:slug>/", views.pharmacy_detail, name="pharmacy_detail"),
 
     path("dashboard/add-medicine/", views.add_medicine, name="add_medicine"),
+    path("dashboard/add-to-pharmacy/", views.add_medicine_to_pharmacy, name="add_medicine_to_pharmacy"),
 
 ]

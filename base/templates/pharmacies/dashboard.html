@@ -8,22 +8,200 @@
 
 <form method="post" class="mb-5">
   {% csrf_token %}
+  
+  <!-- Информация об аптеке -->
   <div class="card shadow-sm mb-4">
-    <div class="card-header bg-primary text-white">Информация об аптеке</div>
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">Информация об аптеке</h5>
+    </div>
     <div class="card-body">
-      {{ form.as_p }}
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
+            {{ form.name }}
+            {% if form.name.errors %}
+              <div class="text-danger">{{ form.name.errors }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="mb-3">
+            <label for="{{ form.slug_preview.id_for_label }}" class="form-label">{{ form.slug_preview.label }}</label>
+            {{ form.slug_preview }}
+            <small class="form-text text-muted">URL автоматически обновляется при изменении названия</small>
+          </div>
+          
+          <div class="mb-3">
+            <label for="{{ form.address.id_for_label }}" class="form-label">{{ form.address.label }}</label>
+            {{ form.address }}
+            {% if form.address.errors %}
+              <div class="text-danger">{{ form.address.errors }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="mb-3">
+            <label for="{{ form.phone.id_for_label }}" class="form-label">{{ form.phone.label }}</label>
+            {{ form.phone }}
+            {% if form.phone.errors %}
+              <div class="text-danger">{{ form.phone.errors }}</div>
+            {% endif %}
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+              <div class="text-danger">{{ form.email.errors }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="{{ form.latitude.id_for_label }}" class="form-label">{{ form.latitude.label }}</label>
+                {{ form.latitude }}
+                {% if form.latitude.errors %}
+                  <div class="text-danger">{{ form.latitude.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="{{ form.longitude.id_for_label }}" class="form-label">{{ form.longitude.label }}</label>
+                {{ form.longitude }}
+                {% if form.longitude.errors %}
+                  <div class="text-danger">{{ form.longitude.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">{{ form.work_days.label }}</label>
+            <div class="row">
+              {% for choice in form.work_days %}
+                <div class="col-md-6">
+                  <div class="form-check">
+                    {{ choice.tag }}
+                    <label class="form-check-label" for="{{ choice.id_for_label }}">
+                      {{ choice.choice_label }}
+                    </label>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+            {% if form.work_days.errors %}
+              <div class="text-danger">{{ form.work_days.errors }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="{{ form.open_at.id_for_label }}" class="form-label">{{ form.open_at.label }}</label>
+                {{ form.open_at }}
+                {% if form.open_at.errors %}
+                  <div class="text-danger">{{ form.open_at.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="{{ form.closed_at.id_for_label }}" class="form-label">{{ form.closed_at.label }}</label>
+                {{ form.closed_at }}
+                {% if form.closed_at.errors %}
+                  <div class="text-danger">{{ form.closed_at.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <div class="form-check">
+              {{ form.is_active }}
+              <label for="{{ form.is_active.id_for_label }}" class="form-check-label">{{ form.is_active.label }}</label>
+            </div>
+            {% if form.is_active.errors %}
+              <div class="text-danger">{{ form.is_active.errors }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
+  <!-- Лекарства в аптеке -->
   <div class="card shadow-sm mb-4">
-    <div class="card-header bg-success text-white">Лекарства в аптеке</div>
+    <div class="card-header bg-success text-white">
+      <h5 class="mb-0">Лекарства в аптеке</h5>
+    </div>
     <div class="card-body">
       {{ formset.management_form }}
-      {% for f in formset %}
-        <div class="border rounded p-3 mb-3">
-          {{ f.as_p }}
+      {% if formset %}
+        {% for f in formset %}
+          <div class="border rounded p-3 mb-3">
+            <!-- Скрытое поле ID для существующих записей -->
+            {{ f.id }}
+            <div class="row">
+              <div class="col-md-3">
+                <div class="mb-3">
+                  <label class="form-label">Лекарство</label>
+                  {{ f.medicine }}
+                  {% if f.medicine.errors %}
+                    <div class="text-danger">{{ f.medicine.errors }}</div>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="col-md-2">
+                <div class="mb-3">
+                  <label class="form-label">Цена</label>
+                  {{ f.price }}
+                  {% if f.price.errors %}
+                    <div class="text-danger">{{ f.price.errors }}</div>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="col-md-2">
+                <div class="mb-3">
+                  <label class="form-label">Количество</label>
+                  {{ f.stock_qty }}
+                  {% if f.stock_qty.errors %}
+                    <div class="text-danger">{{ f.stock_qty.errors }}</div>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="col-md-2">
+                <div class="mb-3">
+                  <div class="form-check">
+                    {{ f.in_stock }}
+                    <label class="form-check-label">В наличии</label>
+                  </div>
+                  {% if f.in_stock.errors %}
+                    <div class="text-danger">{{ f.in_stock.errors }}</div>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="col-md-2">
+                <div class="mb-3">
+                  <div class="form-check">
+                    {{ f.DELETE }}
+                    <label class="form-check-label">Удалить</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="text-center text-muted py-4">
+          <p class="mb-3">В вашей аптеке пока нет лекарств</p>
+          <a href="{% url 'add_medicine_to_pharmacy' %}" class="btn btn-outline-success">
+            🏥 Добавить первое лекарство
+          </a>
         </div>
-      {% endfor %}
+      {% endif %}
     </div>
   </div>
 
@@ -31,8 +209,58 @@
 </form>
 
 <hr>
-<h4>Добавить новое лекарство</h4>
-<a href="{% url 'add_medicine' %}" class="btn btn-outline-primary">
-  ➕ Добавить лекарство
-</a>
+<div class="row">
+  <div class="col-md-6">
+    <h4>Добавить новое лекарство</h4>
+    <p class="text-muted">Создать новое лекарство в системе</p>
+    <a href="{% url 'add_medicine' %}" class="btn btn-outline-primary">
+      ➕ Добавить новое лекарство
+    </a>
+  </div>
+  <div class="col-md-6">
+    <h4>Добавить в аптеку</h4>
+    <p class="text-muted">Добавить существующее лекарство в вашу аптеку</p>
+    <a href="{% url 'add_medicine_to_pharmacy' %}" class="btn btn-outline-success">
+      🏥 Добавить в аптеку
+    </a>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const nameField = document.getElementById('pharmacy-name');
+    const slugField = document.getElementById('slug-preview');
+    
+    if (nameField && slugField) {
+        // Функция для создания slug из названия
+        function createSlug(text) {
+            return text
+                .toLowerCase()
+                .replace(/[а-яё]/g, function(char) {
+                    const map = {
+                        'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo',
+                        'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
+                        'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
+                        'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch',
+                        'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya'
+                    };
+                    return map[char] || char;
+                })
+                .replace(/[^\w\s-]/g, '') // Удаляем специальные символы
+                .replace(/[\s_-]+/g, '-') // Заменяем пробелы и подчеркивания на дефисы
+                .replace(/^-+|-+$/g, ''); // Удаляем дефисы в начале и конце
+        }
+        
+        nameField.addEventListener('input', function() {
+            const slug = createSlug(this.value);
+            slugField.value = slug;
+        });
+        
+        // Инициализируем slug при загрузке страницы
+        if (nameField.value) {
+            slugField.value = createSlug(nameField.value);
+        }
+    }
+});
+</script>
 {% endblock %}

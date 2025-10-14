@@ -362,3 +362,36 @@ def order_detail(request, order_id):
 
     return render(request, "orders/order_detail.html", {"order": order})
 
+
+@require_POST
+@login_required
+def change_order_status_user(request, order_id):
+    """Пользователь меняет статус своего заказа (отмена/завершение) с валидацией."""
+    order = get_object_or_404(Order, id=order_id, user=request.user.profile)
+
+    new_status = request.POST.get("status")
+    if new_status not in [Order.STATUS_CANCELLED, Order.STATUS_COMPLETED]:
+        return JsonResponse({"success": False, "message": "Недопустимый статус"})
+
+    # Нельзя менять завершённый заказ
+    if order.status == Order.STATUS_COMPLETED:
+        return JsonResponse({"success": False, "message": "Заказ уже завершён"})
+
+    # Пользователь может отменить только на стадиях pending/confirmed
+    if new_status == Order.STATUS_CANCELLED:
+        if order.status not in [Order.STATUS_PENDING, Order.STATUS_CONFIRMED]:
+            return JsonResponse({"success": False, "message": "Нельзя отменить на этой стадии"})
+
+    # Пользователь может завершить только когда админ поставил ready_for_pickup
+    if new_status == Order.STATUS_COMPLETED:
+        if order.status != Order.STATUS_READY:
+            return JsonResponse({"success": False, "message": "Можно завершить только после готовности к выдаче"})
+
+    order.status = new_status
+    order.save()
+    return JsonResponse({
+        "success": True,
+        "new_status": order.status,
+        "new_status_display": order.get_status_display(),
+        "message": "Статус обновлён"
+    })

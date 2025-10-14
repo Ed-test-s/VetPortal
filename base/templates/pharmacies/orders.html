@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Заказы аптеки{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>📦 Заказы аптеки "{{ pharmacy.name }}"</h2>
+        <a href="{% url 'pharmacy_dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Назад к панели
+        </a>
+    </div>
+
+    <!-- Статистика -->
+    <div class="row mb-4">
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-warning">{{ orders_by_status.pending.count }}</h5>
+                    <p class="card-text">Ожидают подтверждения</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-info">{{ orders_by_status.confirmed.count }}</h5>
+                    <p class="card-text">Подтверждены</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-success">{{ orders_by_status.ready.count }}</h5>
+                    <p class="card-text">Готовы к выдаче</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">{{ orders_by_status.completed.count }}</h5>
+                    <p class="card-text">Завершены</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-danger">{{ orders_by_status.cancelled.count }}</h5>
+                    <p class="card-text">Отменены</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Заказы по статусам -->
+    {% for status_key, orders in orders_by_status.items %}
+        {% if orders %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        {% if status_key == 'pending' %}
+                            <i class="fas fa-clock text-warning"></i> Ожидают подтверждения
+                        {% elif status_key == 'confirmed' %}
+                            <i class="fas fa-check-circle text-info"></i> Подтверждены
+                        {% elif status_key == 'ready' %}
+                            <i class="fas fa-box text-success"></i> Готовы к выдаче
+                        {% elif status_key == 'completed' %}
+                            <i class="fas fa-check-double text-primary"></i> Завершены
+                        {% elif status_key == 'cancelled' %}
+                            <i class="fas fa-times-circle text-danger"></i> Отменены
+                        {% endif %}
+                        <span class="badge bg-secondary ms-2">{{ orders.count }}</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for order in orders %}
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card h-100 border-start border-4 
+                                    {% if status_key == 'pending' %}border-warning
+                                    {% elif status_key == 'confirmed' %}border-info
+                                    {% elif status_key == 'ready' %}border-success
+                                    {% elif status_key == 'completed' %}border-primary
+                                    {% elif status_key == 'cancelled' %}border-danger
+                                    {% endif %}">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="card-title mb-0">Заказ #{{ order.id }}</h6>
+                                            <small class="text-muted">{{ order.created_at|date:"d.m.Y H:i" }}</small>
+                                        </div>
+                                        
+                                        <p class="card-text mb-2">
+                                            <strong>{{ order.customer_name|default:"Не указано" }}</strong><br>
+                                            <i class="fas fa-phone"></i> {{ order.customer_phone|default:"Не указан" }}<br>
+                                            <i class="fas fa-envelope"></i> {{ order.customer_email|default:"Не указан" }}
+                                        </p>
+                                        
+                                        <div class="mb-2">
+                                            <span class="badge bg-light text-dark">
+                                                <i class="fas fa-truck"></i> 
+                                                {% if order.delivery_type == 'pickup' %}Самовывоз{% else %}Курьер{% endif %}
+                                            </span>
+                                            <span class="badge bg-light text-dark">
+                                                <i class="fas fa-credit-card"></i> 
+                                                {% if order.payment_method == 'cash' %}Наличными{% else %}Картой{% endif %}
+                                            </span>
+                                        </div>
+                                        
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h6 class="text-success mb-0">{{ order.total_price }} Br</h6>
+                                            <a href="{% url 'pharmacy_order_detail' order.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> Подробнее
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% endfor %}
+
+    {% if not orders_by_status.pending and not orders_by_status.confirmed and not orders_by_status.ready and not orders_by_status.completed and not orders_by_status.cancelled %}
+        <div class="text-center py-5">
+            <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+            <h4 class="text-muted">Заказов пока нет</h4>
+            <p class="text-muted">Когда появятся заказы, они отобразятся здесь</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

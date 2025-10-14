@@ -2,12 +2,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from .models import Pharmacy, PharmacyMedicine
-
+from orders.models import Order, OrderItem, OrderPickup
 
 from django.forms import modelform_factory, inlineformset_factory
 from medicines.models import Medicine
 from django.contrib import messages
 from utils import generate_unique_slug
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 
 from django import forms
 from .forms import PharmacyMedicineForm, PharmacyForm
@@ -274,3 +276,107 @@ def add_medicine_to_pharmacy(request):
         form = AddMedicineToPharmacyForm(pharmacy=pharmacy)
 
     return render(request, "pharmacies/add_medicine_to_pharmacy.html", {"form": form})
+
+
+@login_required
+def pharmacy_orders(request):
+    """Список заказов для аптеки"""
+    profile = getattr(request.user, "profile", None)
+    if not profile or profile.role != profile.ROLE_PHARMACY:
+        messages.error(request, "У вас нет прав для доступа к заказам аптеки.")
+        return redirect("home")
+
+    pharmacy = Pharmacy.objects.filter(owner=profile).first()
+    if not pharmacy:
+        messages.error(request, "У вас пока нет зарегистрированной аптеки.")
+        return redirect("home")
+
+    # Получаем заказы, которые содержат товары из этой аптеки
+    orders = Order.objects.filter(
+        items__pharmacy_medicine__pharmacy=pharmacy
+    ).distinct().order_by('-created_at')
+
+    # Группируем по статусам
+    orders_by_status = {
+        'pending': orders.filter(status=Order.STATUS_PENDING),
+        'confirmed': orders.filter(status=Order.STATUS_CONFIRMED),
+        'ready': orders.filter(status=Order.STATUS_READY),
+        'completed': orders.filter(status=Order.STATUS_COMPLETED),
+        'cancelled': orders.filter(status=Order.STATUS_CANCELLED),
+    }
+
+    return render(request, "pharmacies/orders.html", {
+        "pharmacy": pharmacy,
+        "orders_by_status": orders_by_status,
+    })
+
+
+@login_required
+def pharmacy_order_detail(request, order_id):
+    """Детальный просмотр заказа для аптеки"""
+    profile = getattr(request.user, "profile", None)
+    if not profile or profile.role != profile.ROLE_PHARMACY:
+        messages.error(request, "У вас нет прав для доступа к заказам аптеки.")
+        return redirect("home")
+
+    pharmacy = Pharmacy.objects.filter(owner=profile).first()
+    if not pharmacy:
+        messages.error(request, "У вас пока нет зарегистрированной аптеки.")
+        return redirect("home")
+
+    order = get_object_or_404(Order, id=order_id)
+    
+    # Проверяем, что заказ содержит товары из этой аптеки
+    if not order.items.filter(pharmacy_medicine__pharmacy=pharmacy).exists():
+        messages.error(request, "Этот заказ не относится к вашей аптеке.")
+        return redirect("pharmacy_orders")
+
+    # Получаем позиции заказа для этой аптеки
+    order_items = order.items.filter(pharmacy_medicine__pharmacy=pharmacy)
+    
+    # Получаем pickup код для этого заказа и аптеки
+    pickup = OrderPickup.objects.filter(order=order, pharmacy=pharmacy).first()
+
+    return render(request, "pharmacies/order_detail.html", {
+        "pharmacy": pharmacy,
+        "order": order,
+        "order_items": order_items,
+        "pickup": pickup,
+    })
+
+
+@require_POST
+@login_required
+def change_order_status(request, order_id):
+    """Изменение статуса заказа"""
+    profile = getattr(request.user, "profile", None)
+    if not profile or profile.role != profile.ROLE_PHARMACY:
+        return JsonResponse({"success": False, "message": "Нет прав доступа"})
+
+    pharmacy = Pharmacy.objects.filter(owner=profile).first()
+    if not pharmacy:
+        return JsonResponse({"success": False, "message": "Аптека не найдена"})
+
+    order = get_object_or_404(Order, id=order_id)
+    
+    # Проверяем, что заказ содержит товары из этой аптеки
+    if not order.items.filter(pharmacy_medicine__pharmacy=pharmacy).exists():
+        return JsonResponse({"success": False, "message": "Заказ не относится к вашей аптеке"})
+
+    new_status = request.POST.get('status')
+    if new_status not in [Order.STATUS_CONFIRMED, Order.STATUS_READY, Order.STATUS_CANCELLED]:
+        return JsonResponse({"success": False, "message": "Недопустимый статус"})
+
+    # Проверяем возможность смены статуса
+    if order.status == Order.STATUS_COMPLETED:
+        return JsonResponse({"success": False, "message": "Завершенный заказ нельзя изменить"})
+
+    order.status = new_status
+    order.save()
+
+    return JsonResponse({
+        "success": True, 
+        "message": f"Статус заказа изменен на {order.get_status_display()}",
+        "new_status": order.status,
+        "new_status_display": order.get_status_display()
+    })

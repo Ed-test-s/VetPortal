@@ -4,8 +4,27 @@
 {% block content %}
 <h2>Заказ №{{ order.order_number }}</h2>
 <p>Дата: {{ order.created_at|date:"d.m.Y H:i" }}</p>
-<p>Статус: <span class="badge bg-info">{{ order.get_status_display }}</span></p>
-<p>Тип доставки: {{ order.get_delivery_type_display }}</p>
+<div class="d-flex align-items-center gap-3 flex-wrap">
+  <p class="mb-0">Статус: <span class="badge bg-info">{{ order.get_status_display }}</span></p>
+  <div class="btn-group" role="group" aria-label="Изменение статуса">
+    {# Пользователь может отменить на стадиях pending/confirmed #}
+    {% if order.status == 'pending' or order.status == 'confirmed' %}
+      <button class="btn btn-sm btn-outline-danger" onclick="userChangeStatus('{{ order.id }}','cancelled')">Отменить</button>
+    {% endif %}
+
+    {# Пользователь может завершить только когда готов к выдаче #}
+    {% if order.status == 'ready_for_pickup' %}
+      <button class="btn btn-sm btn-outline-primary" onclick="userChangeStatus('{{ order.id }}','completed')">Завершить</button>
+    {% endif %}
+  </div>
+</div>
+
+<div class="d-flex align-items-center gap-3 flex-wrap mt-2">
+  <p class="mb-0">Тип доставки: {{ order.get_delivery_type_display }}</p>
+  {% if order.delivery_type == 'courier' and order.address %}
+    <span class="text-muted">Адрес: {{ order.address }}</span>
+  {% endif %}
+</div>
 
 {% if order.delivery_type == "courier" %}
     <p><strong>Адрес доставки:</strong> {{ order.address }}</p>
@@ -46,7 +65,7 @@
         <a href="{% url 'medicine_detail' item.pharmacy_medicine.medicine.slug %}">
           {{ item.pharmacy_medicine.medicine.name }}
         </a>
-        — {{ item.quantity }} шт. × {{ item.price_at_purchase }} ₽
+        — {{ item.quantity }} шт. × {{ item.price_at_purchase }} Br
       </div>
 
       {% if order.delivery_type == "pickup" %}
@@ -62,5 +81,27 @@
 </div>
 
 
-<p><strong>Итоговая цена: {{ order.total_price }} ₽</strong></p>
+<p><strong>Итоговая цена: {{ order.total_price }} Br</strong></p>
+
+<script>
+function userChangeStatus(orderId, newStatus) {
+  if (!confirm('Подтвердите действие')) return;
+  fetch(`/orders/history/${orderId}/change-status/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: `status=${newStatus}`
+  }).then(r => r.json()).then(data => {
+    if (data.success) {
+      location.reload();
+    } else {
+      alert(data.message || 'Не удалось изменить статус');
+    }
+  }).catch(() => alert('Ошибка сети'));
+}
+</script>
+
+{% csrf_token %}
 {% endblock %}

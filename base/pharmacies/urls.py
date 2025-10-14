@@ -12,5 +12,10 @@ urlpatterns = [
 
     path("dashboard/add-medicine/", views.add_medicine, name="add_medicine"),
     path("dashboard/add-to-pharmacy/", views.add_medicine_to_pharmacy, name="add_medicine_to_pharmacy"),
+    
+    # Заказы аптеки
+    path("dashboard/orders/", views.pharmacy_orders, name="pharmacy_orders"),
+    path("dashboard/orders/<int:order_id>/", views.pharmacy_order_detail, name="pharmacy_order_detail"),
+    path("dashboard/orders/<int:order_id>/change-status/", views.change_order_status, name="change_order_status"),
 
 ]

@@ -88,7 +88,10 @@ def medicine_list(request):
         if price_min is not None and price_min != "":
             price_min_val = float(price_min)
             if price_min_val >= 0:
-                medicines = medicines.filter(medicine_in_pharmacies__price__gte=price_min_val)
+                medicines = medicines.filter(
+                    medicine_in_pharmacies__price__gte=price_min_val,
+                    medicine_in_pharmacies__pharmacy__is_active=True,
+                )
     except ValueError:
         price_min_val = None
 
@@ -96,16 +99,32 @@ def medicine_list(request):
         if price_max is not None and price_max != "":
             price_max_val = float(price_max)
             if price_max_val >= 0:
-                medicines = medicines.filter(medicine_in_pharmacies__price__lte=price_max_val)
+                medicines = medicines.filter(
+                    medicine_in_pharmacies__price__lte=price_max_val,
+                    medicine_in_pharmacies__pharmacy__is_active=True,
+                )
     except ValueError:
         price_max_val = None
 
-    medicines = medicines.distinct()
+    # показываем только товары из активных аптек
+    medicines = medicines.filter(medicine_in_pharmacies__pharmacy__is_active=True).distinct()
 
     # пагинация (21 товар)
     paginator = Paginator(medicines, 21)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
+
+    # пометим избранное для текущего пользователя
+    if request.user.is_authenticated and hasattr(request.user, "profile"):
+        favorite_ids = set(
+            Favorite.objects.filter(user=request.user.profile)
+            .values_list("medicine_id", flat=True)
+        )
+        for med in page_obj.object_list:
+            med.is_favorite = med.id in favorite_ids
+    else:
+        for med in page_obj.object_list:
+            med.is_favorite = False
 
     # для фильтров
     categories = Category.objects.all()
@@ -135,7 +154,7 @@ def medicine_detail(request, slug):
 
     pharmacies = (
         PharmacyMedicine.objects
-        .filter(medicine=medicine)
+        .filter(medicine=medicine, pharmacy__is_active=True)
         .select_related("pharmacy")
     )
 

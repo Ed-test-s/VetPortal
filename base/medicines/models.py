@@ -75,7 +75,12 @@ class Medicine(models.Model):
 
     def get_min_price(self):
         """Вернёт минимальную цену лекарства среди аптек"""
-        price = self.medicine_in_pharmacies.aggregate(min_price=Min("price"))["min_price"]
+        price = (
+            self.medicine_in_pharmacies
+            .filter(pharmacy__is_active=True)
+            .aggregate(min_price=Min("price"))
+            ["min_price"]
+        )
         return price if price is not None else None
 
 

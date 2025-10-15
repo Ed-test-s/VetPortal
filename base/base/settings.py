@@ -131,7 +131,8 @@ LOGIN_REDIRECT_URL = "/"
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+# Moscow time for all displayed datetimes (DB remains UTC if USE_TZ=True)
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 

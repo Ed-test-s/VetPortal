@@ -7,11 +7,30 @@
     <!-- Верхний блок: фото + инфо -->
     <div class="row bg-light p-3 rounded shadow-sm">
         <div class="col-md-5">
-            {% if medicine.main_image %}
-                <img src="{{ medicine.main_image.url }}" class="img-fluid rounded shadow-sm" alt="{{ medicine.name }}">
-            {% else %}
-                <img src="{% static 'images/no-image.png' %}" class="img-fluid rounded shadow-sm" alt="Нет изображения">
-            {% endif %}
+            <div id="medicineCarousel" class="carousel slide rounded shadow-sm" data-bs-ride="carousel" data-bs-wrap="true">
+                <div class="carousel-inner" style="height: 380px;">
+                    {% if medicine.main_image %}
+                        <div class="carousel-item active">
+                            <img src="{{ medicine.main_image.url }}" class="d-block w-100" style="height: 380px; object-fit: cover;" alt="{{ medicine.name }}">
+                        </div>
+                    {% else %}
+                        <div class="carousel-item active">
+                            <img src="{% static 'images/no-image.png' %}" class="d-block w-100" style="height: 380px; object-fit: cover;" alt="Нет изображения">
+                        </div>
+                    {% endif %}
+                    {% for img in medicine.images.all %}
+                        <div class="carousel-item">
+                            <img src="{{ img.image.url }}" class="d-block w-100" style="height: 380px; object-fit: cover;" alt="{{ medicine.name }}">
+                        </div>
+                    {% endfor %}
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#medicineCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon"></span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#medicineCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon"></span>
+                </button>
+            </div>
         </div>
 
         <div class="col-md-7">
@@ -66,29 +85,7 @@
         </div>
     </div>
 
-    <!-- Карусель изображений -->
-    {% if medicine.images.exists or medicine.main_image %}
-    <div id="medicineCarousel" class="carousel slide mt-4 shadow-sm" data-bs-ride="carousel">
-        <div class="carousel-inner">
-            {% if medicine.main_image %}
-                <div class="carousel-item active">
-                    <img src="{{ medicine.main_image.url }}" class="d-block w-40 rounded" alt="{{ medicine.name }}">
-                </div>
-            {% endif %}
-            {% for img in medicine.images.all %}
-                <div class="carousel-item {% if not medicine.main_image and forloop.first %}active{% endif %}">
-                    <img src="{{ img.image.url }}" class="d-block w-40 rounded" alt="{{ medicine.name }}">
-                </div>
-            {% endfor %}
-        </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#medicineCarousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon"></span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#medicineCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon"></span>
-        </button>
-    </div>
-    {% endif %}
+    
 
     <!-- Описание и инструкция -->
     <div class="card mt-4 shadow-sm">

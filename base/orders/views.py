@@ -25,7 +25,14 @@ except Exception:
 # --- КОРЗИНА ---
 @login_required
 def add_to_cart(request, pharmacy_medicine_id):
-    pm = get_object_or_404(PharmacyMedicine, id=pharmacy_medicine_id)
+    pm = get_object_or_404(PharmacyMedicine.objects.select_related("pharmacy"), id=pharmacy_medicine_id)
+
+    # блокируем добавление из неактивной аптеки
+    if not pm.pharmacy.is_active:
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"status": "error", "message": "Аптека временно недоступна"})
+        messages.error(request, "Эта аптека временно недоступна")
+        return redirect("cart")
 
     # корзина пользователя
     cart, _ = getattr(request.user.profile, "cart", None), None

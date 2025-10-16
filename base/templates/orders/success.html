@@ -21,7 +21,7 @@
     Итог: <strong>{{ order.total_price|floatformat:2 }} BYN</strong>
   </div>
 
-  <h4>Коды получения / QR</h4>
+    <h4>Коды получения / QR</h4>
   {% for p in pickups %}
     <div class="card mb-2">
       <div class="card-body d-flex align-items-center">
@@ -31,6 +31,7 @@
             <div class="small text-muted">{{ p.pharmacy.address }}</div>
           {% endif %}
           <div>Код: <strong>{{ p.pickup_code }}</strong></div>
+          <div>Статус: <strong>{{ p.status_display }}</strong></div>
         </div>
         <div class="ms-auto">
           {% if p.qr %}

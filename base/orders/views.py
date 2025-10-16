@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from medicines.models import Medicine
-from pharmacies.models import PharmacyMedicine
+from pharmacies.models import PharmacyMedicine, Pharmacy
 from .models import CartItem, Favorite, Cart
 
 from django.views.decorators.http import require_POST
@@ -320,6 +320,8 @@ def order_success(request, order_id):
             "pickup_code": p.code,
             "pharmacy": p.pharmacy,
             "qr": generate_qr_data_uri(qr_url) if qrcode else None,
+            "status": p.status,
+            "status_display": p.get_status_display(),
         })
 
     # список позиций
@@ -370,6 +372,9 @@ def order_detail(request, order_id):
     return render(request, "orders/order_detail.html", {"order": order})
 
 
+
+
+
 @require_POST
 @login_required
 def change_order_status_user(request, order_id):
@@ -384,18 +389,38 @@ def change_order_status_user(request, order_id):
     if order.status == Order.STATUS_COMPLETED:
         return JsonResponse({"success": False, "message": "Заказ уже завершён"})
 
-    # Пользователь может отменить только на стадиях pending/confirmed
     if new_status == Order.STATUS_CANCELLED:
+        # Разрешаем отмену на стадиях pending/confirmed
         if order.status not in [Order.STATUS_PENDING, Order.STATUS_CONFIRMED]:
             return JsonResponse({"success": False, "message": "Нельзя отменить на этой стадии"})
+        # Откатываем остатки по всем аптекам и помечаем все pickup'ы как отменённые
+        pickups = order.pickups.select_related("pharmacy").all()
+        items = order.items.select_related("pharmacy_medicine__pharmacy").all()
+        for it in items:
+            pm = it.pharmacy_medicine
+            pm.stock_qty = pm.stock_qty + it.quantity
+            pm.in_stock = True
+            pm.save(update_fields=["stock_qty", "in_stock", "updated_at"])
+        for p in pickups:
+            if p.status != OrderPickup.STATUS_CANCELLED:
+                p.status = OrderPickup.STATUS_CANCELLED
+                p.save()
+        # агрегатор установит order.status = cancelled
+        order.refresh_from_db(fields=["status"])
 
-    # Пользователь может завершить только когда админ поставил ready_for_pickup
     if new_status == Order.STATUS_COMPLETED:
-        if order.status != Order.STATUS_READY:
-            return JsonResponse({"success": False, "message": "Можно завершить только после готовности к выдаче"})
+        # Можно завершить только если все аптеки готовы (все pickup'ы = READY)
+        if not order.pickups.exists() or any(p.status != OrderPickup.STATUS_READY for p in order.pickups.all()):
+            return JsonResponse({"success": False, "message": "Можно завершить только после готовности всех аптек"})
+        # отмечаем каждый pickup как завершённый
+        for p in order.pickups.all():
+            if p.status != OrderPickup.STATUS_COMPLETED:
+                p.status = OrderPickup.STATUS_COMPLETED
+                p.save()
+        # агрегатор синхронизирует статус заказа, но поставим явно
+        order.status = Order.STATUS_COMPLETED
+        order.save(update_fields=["status", "status_updated_at"])
 
-    order.status = new_status
-    order.save()
     return JsonResponse({
         "success": True,
         "new_status": order.status,

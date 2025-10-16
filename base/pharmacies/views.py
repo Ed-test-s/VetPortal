@@ -348,7 +348,7 @@ def pharmacy_order_detail(request, order_id):
 @require_POST
 @login_required
 def change_order_status(request, order_id):
-    """Изменение статуса заказа"""
+    """Изменение статуса заказа аптекой: меняем ТОЛЬКО свой pickup-статус."""
     profile = getattr(request.user, "profile", None)
     if not profile or profile.role != profile.ROLE_PHARMACY:
         return JsonResponse({"success": False, "message": "Нет прав доступа"})
@@ -358,25 +358,64 @@ def change_order_status(request, order_id):
         return JsonResponse({"success": False, "message": "Аптека не найдена"})
 
     order = get_object_or_404(Order, id=order_id)
-    
-    # Проверяем, что заказ содержит товары из этой аптеки
+
+    # Проверяем наличие позиций этой аптеки в заказе
     if not order.items.filter(pharmacy_medicine__pharmacy=pharmacy).exists():
         return JsonResponse({"success": False, "message": "Заказ не относится к вашей аптеке"})
 
-    new_status = request.POST.get('status')
-    if new_status not in [Order.STATUS_CONFIRMED, Order.STATUS_READY, Order.STATUS_CANCELLED]:
+    # Ищем соответствующий pickup
+    pickup = OrderPickup.objects.filter(order=order, pharmacy=pharmacy).first()
+    if not pickup:
+        return JsonResponse({"success": False, "message": "Точка самовывоза для этой аптеки не найдена"})
+
+    # поддерживаем алиасы статусов с фронта
+    alias = request.POST.get('status')
+    alias_map = {
+        'ready': OrderPickup.STATUS_READY,
+        'ready_for_pickup': OrderPickup.STATUS_READY,
+        'confirmed': OrderPickup.STATUS_CONFIRMED,
+        'cancelled': OrderPickup.STATUS_CANCELLED,
+    }
+    new_status = alias_map.get(alias, alias)
+    allowed = {OrderPickup.STATUS_CONFIRMED, OrderPickup.STATUS_READY, OrderPickup.STATUS_CANCELLED}
+    if new_status not in allowed:
         return JsonResponse({"success": False, "message": "Недопустимый статус"})
 
-    # Проверяем возможность смены статуса
+    # Нельзя менять отменённое/завершённое
     if order.status == Order.STATUS_COMPLETED:
-        return JsonResponse({"success": False, "message": "Завершенный заказ нельзя изменить"})
+        return JsonResponse({"success": False, "message": "Завершённый заказ нельзя изменить"})
+    if pickup.status == OrderPickup.STATUS_CANCELLED and new_status != OrderPickup.STATUS_CANCELLED:
+        return JsonResponse({"success": False, "message": "Отменённую секцию нельзя возобновить"})
 
-    order.status = new_status
-    order.save()
+    # Локальные переходы
+    valid_transitions = {
+        OrderPickup.STATUS_PENDING: {OrderPickup.STATUS_CONFIRMED, OrderPickup.STATUS_CANCELLED},
+        OrderPickup.STATUS_CONFIRMED: {OrderPickup.STATUS_READY, OrderPickup.STATUS_CANCELLED},
+        OrderPickup.STATUS_READY: set(),  # дальше только клиент завершает весь заказ
+        OrderPickup.STATUS_CANCELLED: set(),
+    }
+    if new_status not in valid_transitions.get(pickup.status, set()):
+        return JsonResponse({"success": False, "message": "Недопустимый переход статуса"})
+
+    # При отмене откатываем остатки по позициям этой аптеки
+    if new_status == OrderPickup.STATUS_CANCELLED and pickup.status != OrderPickup.STATUS_CANCELLED:
+        items = order.items.select_related("pharmacy_medicine__pharmacy").filter(
+            pharmacy_medicine__pharmacy=pharmacy
+        )
+        for it in items:
+            pm = it.pharmacy_medicine
+            pm.stock_qty = pm.stock_qty + it.quantity
+            pm.in_stock = True
+            pm.save(update_fields=["stock_qty", "in_stock", "updated_at"])
+
+    pickup.status = new_status
+    pickup.save()  # пересчитает агрегат заказа
 
     return JsonResponse({
-        "success": True, 
-        "message": f"Статус заказа изменен на {order.get_status_display()}",
-        "new_status": order.status,
-        "new_status_display": order.get_status_display()
+        "success": True,
+        "message": f"Статус вашей аптеки: {pickup.get_status_display()}",
+        "pickup_status": pickup.status,
+        "pickup_status_display": pickup.get_status_display(),
+        "order_status": order.status,
+        "order_status_display": order.get_status_display(),
     })

@@ -207,12 +207,46 @@ class Order(models.Model):
         # только потом пересчитываем total (если заказ уже существует)
         self.recalc_total(save=True)
 
+
+
     def recalc_total(self, save=True):
         total = sum(item.total_price() for item in self.items.all())
         self.total_price = total
         if save:
             super(Order, self).save(update_fields=["total_price"])
         return total
+
+    def recalc_aggregate_status(self, save=True):
+        """
+        Пересчитывает общий статус заказа на основе статусов pickup'ов.
+        Правила:
+        - если все pickup'ы cancelled -> заказ cancelled
+        - если все pickup'ы ready_for_pickup -> заказ ready_for_pickup
+        - если все pickup'ы в {confirmed, ready_for_pickup} -> заказ confirmed
+        - иначе -> pending
+        """
+        pickups = list(self.pickups.all())
+        if not pickups:
+            return self.status
+
+        statuses = {p.status for p in pickups}
+        now = timezone.now()
+
+        if statuses == {Order.STATUS_CANCELLED}:
+            new_status = Order.STATUS_CANCELLED
+        elif statuses == {Order.STATUS_READY}:
+            new_status = Order.STATUS_READY
+        elif statuses.issubset({Order.STATUS_CONFIRMED, Order.STATUS_READY}):
+            new_status = Order.STATUS_CONFIRMED
+        else:
+            new_status = Order.STATUS_PENDING
+
+        if new_status != self.status:
+            self.status = new_status
+            self.status_updated_at = now
+            if save:
+                super(Order, self).save(update_fields=["status", "status_updated_at"])
+        return self.status
 
 
 # --- Новая модель: связь заказа с аптекой и pickup-кодом
@@ -222,8 +256,25 @@ class OrderPickup(models.Model):
     code = models.CharField(max_length=6, blank=True)
     qr_image = models.ImageField(upload_to="qr_codes/", blank=True, null=True)
 
+    # Локальные статусы для аптеки
+    STATUS_PENDING = Order.STATUS_PENDING
+    STATUS_CONFIRMED = Order.STATUS_CONFIRMED
+    STATUS_READY = Order.STATUS_READY
+    STATUS_COMPLETED = Order.STATUS_COMPLETED
+    STATUS_CANCELLED = Order.STATUS_CANCELLED
+
+    STATUS_CHOICES = [
+        (STATUS_PENDING, "Ожидает подтверждения"),
+        (STATUS_CONFIRMED, "Подтверждён"),
+        (STATUS_READY, "Готов к выдаче"),
+        (STATUS_COMPLETED, "Завершён"),
+        (STATUS_CANCELLED, "Отменён"),
+    ]
+
+    status = models.CharField(max_length=32, choices=STATUS_CHOICES, default=STATUS_PENDING, db_index=True)
+    status_updated_at = models.DateTimeField(null=True, blank=True)
+
     def save(self, *args, **kwargs):
-        # генерируем код, если ещё не создан
         if not self.code:
             self.code = str(random.randint(100000, 999999))
 
@@ -234,12 +285,17 @@ class OrderPickup(models.Model):
         file_name = f"order_{self.order_id}_pickup_{self.pharmacy_id or 'delivery'}.png"
         self.qr_image.save(file_name, ContentFile(buffer.getvalue()), save=False)
 
+        if not self.pk:
+            self.status_updated_at = timezone.now()
+        else:
+            old = OrderPickup.objects.filter(pk=self.pk).only("status").first()
+            if old and old.status != self.status:
+                self.status_updated_at = timezone.now()
+
         super().save(*args, **kwargs)
 
-    def __str__(self):
-        if self.pharmacy:
-            return f"Самовывоз {self.pharmacy.name} — код {self.code}"
-        return f"Доставка — код {self.code}"
+        # после сохранения pickup'а пересчитаем агрегат заказа
+        self.order.recalc_aggregate_status(save=True)
 
 
 

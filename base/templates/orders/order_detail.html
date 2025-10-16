@@ -50,11 +50,14 @@
       {% endif %}
 
       <p>Код: <strong>{{ pickup.code }}</strong></p>
+      <p><strong>Статус:</strong> {{ pickup.get_status_display }}</p>
     </div>
   {% empty %}
     <p class="text-muted">Кодов для получения нет</p>
   {% endfor %}
 </div>
+
+
 
 <hr>
 <h4>Товары:</h4>

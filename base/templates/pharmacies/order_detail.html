@@ -24,7 +24,7 @@
                 <div class="card-header">
                     <h5 class="mb-0">
                         <i class="fas fa-info-circle"></i> Информация о заказе
-                        <span class="badge bg-{% if order.status == 'pending' %}warning{% elif order.status == 'confirmed' %}info{% elif order.status == 'ready' %}success{% elif order.status == 'completed' %}primary{% elif order.status == 'cancelled' %}danger{% endif %} ms-2">
+                        <span class="badge bg-{% if order.status == 'pending' %}warning{% elif order.status == 'confirmed' %}info{% elif order.status == 'ready_for_pickup' %}success{% elif order.status == 'completed' %}primary{% elif order.status == 'cancelled' %}danger{% endif %} ms-2">
                             {{ order.get_status_display }}
                         </span>
                     </h5>
@@ -156,13 +156,13 @@
                                 <i class="fas fa-times"></i> Отменить заказ
                             </button>
                         {% elif order.status == 'confirmed' %}
-                            <button class="btn btn-success" onclick="changeStatus('{{ order.id }}', 'ready')">
+                            <button class="btn btn-success" onclick="changeStatus('{{ order.id }}', 'ready_for_pickup')">
                                 <i class="fas fa-box"></i> Готов к выдаче
                             </button>
                             <button class="btn btn-danger" onclick="changeStatus('{{ order.id }}', 'cancelled')">
                                 <i class="fas fa-times"></i> Отменить заказ
                             </button>
-                        {% elif order.status == 'ready' %}
+                        {% elif order.status == 'ready_for_pickup' %}
                             <p class="text-success text-center">
                                 <i class="fas fa-check-circle"></i><br>
                                 Заказ готов к выдаче

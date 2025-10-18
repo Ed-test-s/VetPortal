@@ -281,13 +281,13 @@ def checkout_view(request):
             order.recalc_total(save=True)
 
             # создаём pickup-коды
-            if order.delivery_type == Order.DELIVERY_PICKUP:
-                pharmacies = set(item.pharmacy_medicine.pharmacy for item in cart.items.all())
-                for pharmacy in pharmacies:
-                    OrderPickup.objects.create(order=order, pharmacy=pharmacy)
-            else:
-                # courier — один код без привязки к конкретной аптеке
-                OrderPickup.objects.create(order=order)
+            pharmacies = set(item.pharmacy_medicine.pharmacy for item in cart.items.all())
+            for pharmacy in pharmacies:
+                OrderPickup.objects.create(order=order, pharmacy=pharmacy)
+            
+            # При курьерской доставке создаем дополнительный код для курьера
+            if order.delivery_type == Order.DELIVERY_COURIER:
+                OrderPickup.objects.create(order=order, pharmacy=None)
 
             # удаляем перенесённые позиции из корзины
             items_qs.delete()
@@ -307,14 +307,16 @@ def order_success(request, order_id):
     pickups_with_qr = []
 
     for p in pickups:
-        if order.delivery_type == Order.DELIVERY_PICKUP and p.pharmacy:
+        if p.pharmacy:
             # ссылка на страницу аптеки
             qr_url = request.build_absolute_uri(
                 reverse("pharmacy_detail", args=[p.pharmacy.slug])
             )
         else:
-            # курьерская доставка → рикролл
-            qr_url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+            # курьерская доставка → ссылка на детали заказа
+            qr_url = request.build_absolute_uri(
+                reverse("order_detail", args=[order.id])
+            )
 
         pickups_with_qr.append({
             "pickup_code": p.code,
@@ -409,11 +411,12 @@ def change_order_status_user(request, order_id):
         order.refresh_from_db(fields=["status"])
 
     if new_status == Order.STATUS_COMPLETED:
-        # Можно завершить только если все аптеки готовы (все pickup'ы = READY)
-        if not order.pickups.exists() or any(p.status != OrderPickup.STATUS_READY for p in order.pickups.all()):
+        # Можно завершить только если все аптеки готовы (игнорируем курьера)
+        pharmacy_pickups = order.pickups.filter(pharmacy__isnull=False)
+        if not pharmacy_pickups.exists() or any(p.status != OrderPickup.STATUS_READY for p in pharmacy_pickups):
             return JsonResponse({"success": False, "message": "Можно завершить только после готовности всех аптек"})
-        # отмечаем каждый pickup как завершённый
-        for p in order.pickups.all():
+        # отмечаем каждый pickup аптеки как завершённый
+        for p in pharmacy_pickups:
             if p.status != OrderPickup.STATUS_COMPLETED:
                 p.status = OrderPickup.STATUS_COMPLETED
                 p.save()

@@ -36,21 +36,37 @@
   {% for pickup in order.pickups.all %}
     <div class="col-md-4 text-center mb-3">
       {% if pickup.pharmacy %}
-        <p><strong>Аптека:
-            <a href="{% url 'pharmacy_detail' pickup.pharmacy.slug %}">
-                {{ pickup.pharmacy.name }}
-            </a>
-        </strong></p>
+        <div class="card">
+          <div class="card-body">
+            <p><strong>Аптека:
+                <a href="{% url 'pharmacy_detail' pickup.pharmacy.slug %}">
+                    {{ pickup.pharmacy.name }}
+                </a>
+            </strong></p>
+            
+            {% if pickup.qr_image %}
+              <img src="{{ pickup.qr_image.url }}" class="img-fluid mb-2" alt="QR код">
+            {% endif %}
+            
+            <p>Код: <strong>{{ pickup.code }}</strong></p>
+            <p><strong>Статус:</strong> {{ pickup.get_status_display }}</p>
+          </div>
+        </div>
       {% else %}
-        <p><strong>Код для курьера</strong></p>
+        <div class="card border-warning">
+          <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0">🚚 Код для курьера</h5>
+          </div>
+          <div class="card-body">
+            {% if pickup.qr_image %}
+              <img src="{{ pickup.qr_image.url }}" class="img-fluid mb-2" alt="QR код курьера">
+            {% endif %}
+            
+            <p>Код: <strong class="text-warning">{{ pickup.code }}</strong></p>
+            <p class="text-muted small">Статус курьера не влияет на заказ</p>
+          </div>
+        </div>
       {% endif %}
-
-      {% if pickup.qr_image %}
-        <img src="{{ pickup.qr_image.url }}" class="img-fluid mb-2" alt="QR код">
-      {% endif %}
-
-      <p>Код: <strong>{{ pickup.code }}</strong></p>
-      <p><strong>Статус:</strong> {{ pickup.get_status_display }}</p>
     </div>
   {% empty %}
     <p class="text-muted">Кодов для получения нет</p>

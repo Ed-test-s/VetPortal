@@ -29,9 +29,16 @@
           {% if p.pharmacy %}
             <div class="fw-bold">{{ p.pharmacy.name }}</div>
             <div class="small text-muted">{{ p.pharmacy.address }}</div>
+          {% else %}
+            <div class="fw-bold text-warning">🚚 Код для курьера</div>
+            <div class="small text-muted">Курьерская доставка</div>
           {% endif %}
           <div>Код: <strong>{{ p.pickup_code }}</strong></div>
-          <div>Статус: <strong>{{ p.status_display }}</strong></div>
+          {% if p.pharmacy %}
+            <div>Статус: <strong>{{ p.status_display }}</strong></div>
+          {% else %}
+            <div class="small text-muted">Статус курьера не влияет на заказ</div>
+          {% endif %}
         </div>
         <div class="ms-auto">
           {% if p.qr %}

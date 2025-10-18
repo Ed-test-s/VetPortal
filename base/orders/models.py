@@ -218,18 +218,20 @@ class Order(models.Model):
 
     def recalc_aggregate_status(self, save=True):
         """
-        Пересчитывает общий статус заказа на основе статусов pickup'ов.
+        Пересчитывает общий статус заказа на основе статусов pickup'ов аптек.
+        Игнорирует статус курьера (pickup'ы с pharmacy=None).
         Правила:
-        - если все pickup'ы cancelled -> заказ cancelled
-        - если все pickup'ы ready_for_pickup -> заказ ready_for_pickup
-        - если все pickup'ы в {confirmed, ready_for_pickup} -> заказ confirmed
+        - если все pickup'ы аптек cancelled -> заказ cancelled
+        - если все pickup'ы аптек ready_for_pickup -> заказ ready_for_pickup
+        - если все pickup'ы аптек в {confirmed, ready_for_pickup} -> заказ confirmed
         - иначе -> pending
         """
-        pickups = list(self.pickups.all())
-        if not pickups:
+        # Берем только pickup'ы аптек (исключаем курьера)
+        pharmacy_pickups = list(self.pickups.filter(pharmacy__isnull=False))
+        if not pharmacy_pickups:
             return self.status
 
-        statuses = {p.status for p in pickups}
+        statuses = {p.status for p in pharmacy_pickups}
         now = timezone.now()
 
         if statuses == {Order.STATUS_CANCELLED}:
@@ -282,7 +284,10 @@ class OrderPickup(models.Model):
         qr = qrcode.make(self.code)
         buffer = BytesIO()
         qr.save(buffer, format="PNG")
-        file_name = f"order_{self.order_id}_pickup_{self.pharmacy_id or 'delivery'}.png"
+        if self.pharmacy:
+            file_name = f"order_{self.order_id}_pickup_{self.pharmacy_id}.png"
+        else:
+            file_name = f"order_{self.order_id}_courier.png"
         self.qr_image.save(file_name, ContentFile(buffer.getvalue()), save=False)
 
         if not self.pk:

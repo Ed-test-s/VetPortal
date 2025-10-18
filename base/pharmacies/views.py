@@ -363,7 +363,7 @@ def change_order_status(request, order_id):
     if not order.items.filter(pharmacy_medicine__pharmacy=pharmacy).exists():
         return JsonResponse({"success": False, "message": "Заказ не относится к вашей аптеке"})
 
-    # Ищем соответствующий pickup
+    # Ищем соответствующий pickup для этой аптеки
     pickup = OrderPickup.objects.filter(order=order, pharmacy=pharmacy).first()
     if not pickup:
         return JsonResponse({"success": False, "message": "Точка самовывоза для этой аптеки не найдена"})

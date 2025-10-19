@@ -337,11 +337,15 @@ def pharmacy_order_detail(request, order_id):
     # Получаем pickup код для этого заказа и аптеки
     pickup = OrderPickup.objects.filter(order=order, pharmacy=pharmacy).first()
 
+    # Вычисляем сумму только для позиций этой аптеки
+    pharmacy_total = sum(item.total_price() for item in order_items)
+    
     return render(request, "pharmacies/order_detail.html", {
         "pharmacy": pharmacy,
         "order": order,
         "order_items": order_items,
         "pickup": pickup,
+        "pharmacy_total": pharmacy_total,
     })
 
 

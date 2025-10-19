@@ -21,9 +21,6 @@
 
 <div class="d-flex align-items-center gap-3 flex-wrap mt-2">
   <p class="mb-0">Тип доставки: {{ order.get_delivery_type_display }}</p>
-  {% if order.delivery_type == 'courier' and order.address %}
-    <span class="text-muted">Адрес: {{ order.address }}</span>
-  {% endif %}
 </div>
 
 {% if order.delivery_type == "courier" %}

@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from medicines.models import Medicine
 from pharmacies.models import PharmacyMedicine, Pharmacy
 from .models import CartItem, Favorite, Cart
@@ -20,6 +20,8 @@ try:
     import qrcode
 except Exception:
     qrcode = None
+
+from .pdf_generator import generate_receipts_for_order
 
 
 # --- КОРЗИНА ---
@@ -430,3 +432,37 @@ def change_order_status_user(request, order_id):
         "new_status_display": order.get_status_display(),
         "message": "Статус обновлён"
     })
+
+
+@login_required
+def download_receipt(request, order_id, receipt_type=None, pharmacy_id=None):
+    """Скачивание PDF-чека для заказа"""
+    order = get_object_or_404(Order, id=order_id, user=request.user.profile)
+    
+    try:
+        receipts = generate_receipts_for_order(order)
+        
+        if not receipts:
+            messages.error(request, "Чеки для этого заказа не найдены")
+            return redirect("order_detail", order_id=order_id)
+        
+        # Если указан тип чека, ищем соответствующий
+        if receipt_type == "courier":
+            receipt = next((r for r in receipts if r['type'] == 'courier'), None)
+        elif receipt_type == "pharmacy" and pharmacy_id:
+            receipt = next((r for r in receipts if r['type'] == 'pharmacy' and r['pharmacy'].id == int(pharmacy_id)), None)
+        else:
+            # Если не указан тип, возвращаем первый доступный чек
+            receipt = receipts[0]
+        
+        if not receipt:
+            messages.error(request, "Запрашиваемый чек не найден")
+            return redirect("order_detail", order_id=order_id)
+        
+        response = HttpResponse(receipt['buffer'].getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{receipt["filename"]}"'
+        return response
+        
+    except Exception as e:
+        messages.error(request, f"Ошибка при генерации чека: {str(e)}")
+        return redirect("order_detail", order_id=order_id)

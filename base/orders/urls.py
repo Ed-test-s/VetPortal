@@ -9,6 +9,9 @@ urlpatterns = [
     path("history/", views.order_history, name="order_history"),
     path("history/<int:order_id>/", views.order_detail, name="order_detail"),
     path("history/<int:order_id>/change-status/", views.change_order_status_user, name="order_change_status_user"),
+    path("history/<int:order_id>/receipt/", views.download_receipt, name="download_receipt"),
+    path("history/<int:order_id>/receipt/<str:receipt_type>/", views.download_receipt, name="download_receipt_type"),
+    path("history/<int:order_id>/receipt/<str:receipt_type>/<int:pharmacy_id>/", views.download_receipt, name="download_receipt_pharmacy"),
 
     path("cart/add/<int:pharmacy_medicine_id>/", views.add_to_cart, name="add_to_cart"),
     path("cart/remove/<int:item_id>/", views.remove_from_cart, name="remove_from_cart"),

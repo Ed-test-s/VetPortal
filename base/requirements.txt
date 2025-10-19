@@ -39,3 +39,4 @@ Pillow
 django-phonenumber-field==8.1.0
 
 qrcode==8.2
+reportlab==4.4.4

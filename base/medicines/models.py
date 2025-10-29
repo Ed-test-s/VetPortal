@@ -77,7 +77,11 @@ class Medicine(models.Model):
         """Вернёт минимальную цену лекарства среди аптек"""
         price = (
             self.medicine_in_pharmacies
-            .filter(pharmacy__is_active=True)
+            .filter(
+                pharmacy__is_active=True,
+                in_stock=True,
+                stock_qty__gte=1,
+            )
             .aggregate(min_price=Min("price"))
             ["min_price"]
         )

@@ -18,11 +18,22 @@
     {% endif %}
 
     <!-- Фото -->
-    {% if med.main_image %}
-      <img src="{{ med.main_image.url }}" class="card-img-top object-fit-cover" style="height:300px;" alt="{{ med.name }}">
-    {% else %}
-      <img src="{% static 'images/no-image.png' %}" class="card-img-top object-fit-cover" style="height:300px;" alt="Нет фото">
-    {% endif %}
+      {% if med.main_image %}
+          <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 300px; overflow: hidden;">
+            <img src="{{ med.main_image.url }}" alt="{{ med.name }}" class="img-fluid" style="max-height: 100%; object-fit: contain;">
+          </div>
+        {% else %}
+          <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 300px; overflow: hidden;">
+            <img src="{% static 'images/no-image.png' %}" alt="Нет фото" class="img-fluid" style="max-height: 100%; object-fit: contain;">
+          </div>
+        {% endif %}
+
+<!--    {% if med.main_image %}-->
+<!--      <img src="{{ med.main_image.url }}" class="card-img-top object-fit-cover" style="height:300px;" alt="{{ med.name }}">-->
+<!--    {% else %}-->
+<!--      <img src="{% static 'images/no-image.png' %}" class="card-img-top object-fit-cover" style="height:300px;" alt="Нет фото">-->
+<!--    {% endif %}-->
+
 
     <!-- Инфо -->
     <div class="card-body d-flex flex-column">

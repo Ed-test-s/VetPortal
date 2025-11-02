@@ -136,6 +136,16 @@ def add_medicine(request):
         return redirect("home")
 
     class MedicineForm(forms.ModelForm):
+        slug_preview = forms.CharField(
+            label="Slug (URL)",
+            required=False,
+            widget=forms.TextInput(attrs={
+                'class': 'form-control',
+                'readonly': 'readonly',
+                'id': 'slug-preview'
+            })
+        )
+
         # Поля для дополнительных изображений (до 5 штук)
         extra_image_1 = forms.ImageField(
             required=False,
@@ -165,9 +175,10 @@ def add_medicine(request):
         
         class Meta:
             model = Medicine
-            fields = ["name", "category", "manufacturer", "description", "instruction", "is_prescription", "main_image"]
+            fields = ["name", "slug", "category", "manufacturer", "description", "instruction", "is_prescription", "main_image"]
             widgets = {
                 'name': forms.TextInput(attrs={'class': 'form-control'}),
+                'slug': forms.HiddenInput(),  # 🔹 скрытое поле slug
                 'category': forms.Select(attrs={'class': 'form-select'}),
                 'manufacturer': forms.TextInput(attrs={'class': 'form-control'}),
                 'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
@@ -179,7 +190,10 @@ def add_medicine(request):
     if request.method == "POST":
         form = MedicineForm(request.POST, request.FILES)
         if form.is_valid():
-            medicine = form.save()
+            medicine = form.save(commit=False)
+            # Генерация slug перед сохранением
+            medicine.slug = form.cleaned_data.get('slug_preview') or generate_unique_slug(medicine, 'slug', 'name')
+            medicine.save()
             
             # Обрабатываем дополнительные изображения
             extra_images = [
@@ -189,14 +203,14 @@ def add_medicine(request):
                 form.cleaned_data.get('extra_image_4'),
                 form.cleaned_data.get('extra_image_5'),
             ]
-            
+
+            from medicines.models import PharmacyImage
             for image in extra_images:
                 if image:  # Проверяем, что файл не пустой
-                    from medicines.models import PharmacyImage
                     PharmacyImage.objects.create(medicine=medicine, image=image)
             
             messages.success(request, f"Лекарство '{medicine.name}' добавлено.")
-            return redirect("pharmacies:pharmacy_dashboard")
+            return redirect("pharmacy_dashboard")
         else:
             messages.error(request, "Ошибка при добавлении лекарства.")
     else:

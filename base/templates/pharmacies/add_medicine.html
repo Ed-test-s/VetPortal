@@ -16,194 +16,202 @@
 <form method="post" enctype="multipart/form-data">
   {% csrf_token %}
                         
-                        <!-- Основная информация -->
-                        <div class="card mb-4">
-                            <div class="card-header bg-light">
-                                <h5 class="mb-0">📋 Основная информация</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="{{ form.name.id_for_label }}" class="form-label">
-                                                <i class="fas fa-pills text-primary"></i> {{ form.name.label }}
-                                            </label>
-                                            {{ form.name }}
-                                            {% if form.name.errors %}
-                                                <div class="text-danger">{{ form.name.errors }}</div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="{{ form.category.id_for_label }}" class="form-label">
-                                                <i class="fas fa-tags text-primary"></i> {{ form.category.label }}
-                                            </label>
-                                            {{ form.category }}
-                                            {% if form.category.errors %}
-                                                <div class="text-danger">{{ form.category.errors }}</div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="{{ form.manufacturer.id_for_label }}" class="form-label">
-                                                <i class="fas fa-industry text-primary"></i> {{ form.manufacturer.label }}
-                                            </label>
-                                            {{ form.manufacturer }}
-                                            {% if form.manufacturer.errors %}
-                                                <div class="text-danger">{{ form.manufacturer.errors }}</div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <div class="form-check">
-                                                {{ form.is_prescription }}
-                                                <label for="{{ form.is_prescription.id_for_label }}" class="form-check-label">
-                                                    <i class="fas fa-prescription-bottle text-primary"></i> {{ form.is_prescription.label }}
-                                                </label>
-                                            </div>
-                                            {% if form.is_prescription.errors %}
-                                                <div class="text-danger">{{ form.is_prescription.errors }}</div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+    <!-- Основная информация -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">📋 Основная информация</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">
+                            <i class="fas fa-pills text-primary"></i> {{ form.name.label }}
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="text-danger">{{ form.name.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!--   поле с генерацией slug-->
+                    <div class="mb-3">
+                        <label for="{{ form.slug_preview.id_for_label }}" class="form-label">Slug (URL)</label>
+                        {{ form.slug_preview }}
+                        <small class="form-text text-muted">URL создаётся автоматически при вводе названия</small>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.category.id_for_label }}" class="form-label">
+                            <i class="fas fa-tags text-primary"></i> {{ form.category.label }}
+                        </label>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                            <div class="text-danger">{{ form.category.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.manufacturer.id_for_label }}" class="form-label">
+                            <i class="fas fa-industry text-primary"></i> {{ form.manufacturer.label }}
+                        </label>
+                        {{ form.manufacturer }}
+                        {% if form.manufacturer.errors %}
+                            <div class="text-danger">{{ form.manufacturer.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.is_prescription }}
+                            <label for="{{ form.is_prescription.id_for_label }}" class="form-check-label">
+                                <i class="fas fa-prescription-bottle text-primary"></i> {{ form.is_prescription.label }}
+                            </label>
                         </div>
-                        
-                        <!-- Изображения -->
-                        <div class="card mb-4">
-                            <div class="card-header bg-light">
-                                <h5 class="mb-0">🖼️ Изображения лекарства</h5>
-                                <small class="text-muted">Главное изображение и до 5 дополнительных</small>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="{{ form.main_image.id_for_label }}" class="form-label">
-                                                <i class="fas fa-image text-primary"></i> {{ form.main_image.label }}
-                                            </label>
-                                            {{ form.main_image }}
-                                            {% if form.main_image.errors %}
-                                                <div class="text-danger">{{ form.main_image.errors }}</div>
-                                            {% endif %}
-                                            <small class="form-text text-muted">Главное изображение лекарства (рекомендуемый размер: 300x300px)</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="{{ form.extra_image_1.id_for_label }}" class="form-label">
-                                                <i class="fas fa-images text-primary"></i> {{ form.extra_image_1.label }}
-                                            </label>
-                                            {{ form.extra_image_1 }}
-                                            {% if form.extra_image_1.errors %}
-                                                <div class="text-danger">{{ form.extra_image_1.errors }}</div>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <div class="mb-3">
-                                            <label for="{{ form.extra_image_2.id_for_label }}" class="form-label">
-                                                <i class="fas fa-images text-primary"></i> {{ form.extra_image_2.label }}
-                                            </label>
-                                            {{ form.extra_image_2 }}
-                                            {% if form.extra_image_2.errors %}
-                                                <div class="text-danger">{{ form.extra_image_2.errors }}</div>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <div class="mb-3">
-                                            <label for="{{ form.extra_image_3.id_for_label }}" class="form-label">
-                                                <i class="fas fa-images text-primary"></i> {{ form.extra_image_3.label }}
-                                            </label>
-                                            {{ form.extra_image_3 }}
-                                            {% if form.extra_image_3.errors %}
-                                                <div class="text-danger">{{ form.extra_image_3.errors }}</div>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <div class="mb-3">
-                                            <label for="{{ form.extra_image_4.id_for_label }}" class="form-label">
-                                                <i class="fas fa-images text-primary"></i> {{ form.extra_image_4.label }}
-                                            </label>
-                                            {{ form.extra_image_4 }}
-                                            {% if form.extra_image_4.errors %}
-                                                <div class="text-danger">{{ form.extra_image_4.errors }}</div>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <div class="mb-3">
-                                            <label for="{{ form.extra_image_5.id_for_label }}" class="form-label">
-                                                <i class="fas fa-images text-primary"></i> {{ form.extra_image_5.label }}
-                                            </label>
-                                            {{ form.extra_image_5 }}
-                                            {% if form.extra_image_5.errors %}
-                                                <div class="text-danger">{{ form.extra_image_5.errors }}</div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Описание -->
-                        <div class="card mb-4">
-                            <div class="card-header bg-light">
-                                <h5 class="mb-0">📝 Описание</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="mb-3">
-                                    <label for="{{ form.description.id_for_label }}" class="form-label">
-                                        <i class="fas fa-info-circle text-primary"></i> {{ form.description.label }}
-                                    </label>
-                                    {{ form.description }}
-                                    {% if form.description.errors %}
-                                        <div class="text-danger">{{ form.description.errors }}</div>
-                                    {% endif %}
-                                    <small class="form-text text-muted">Краткое описание лекарства и его назначения</small>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Инструкция по применению -->
-                        <div class="card mb-4">
-                            <div class="card-header bg-light">
-                                <h5 class="mb-0">📋 Инструкция по применению</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="mb-3">
-                                    <label for="{{ form.instruction.id_for_label }}" class="form-label">
-                                        <i class="fas fa-file-medical text-primary"></i> {{ form.instruction.label }}
-                                    </label>
-                                    {{ form.instruction }}
-                                    {% if form.instruction.errors %}
-                                        <div class="text-danger">{{ form.instruction.errors }}</div>
-                                    {% endif %}
-                                    <small class="form-text text-muted">Подробная инструкция по применению лекарства</small>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Кнопки -->
-                        <div class="d-flex gap-2 justify-content-between align-items-center">
-                            <div>
-                                <button type="submit" class="btn btn-primary btn-lg">
-                                    <i class="fas fa-plus"></i> Создать лекарство
-                                </button>
-                                <a href="{% url 'pharmacy_dashboard' %}" class="btn btn-outline-secondary btn-lg">
-                                    <i class="fas fa-arrow-left"></i> Назад к панели
-                                </a>
-                            </div>
-                            <div class="text-muted">
-                                <small><i class="fas fa-info-circle"></i> После создания лекарство будет доступно для добавления во все аптеки</small>
-                            </div>
-                        </div>
+                        {% if form.is_prescription.errors %}
+                            <div class="text-danger">{{ form.is_prescription.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Изображения -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">🖼️ Изображения лекарства</h5>
+            <small class="text-muted">Главное изображение и до 5 дополнительных</small>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.main_image.id_for_label }}" class="form-label">
+                            <i class="fas fa-image text-primary"></i> {{ form.main_image.label }}
+                        </label>
+                        {{ form.main_image }}
+                        {% if form.main_image.errors %}
+                            <div class="text-danger">{{ form.main_image.errors }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">Главное изображение лекарства (рекомендуемый размер: 300x300px)</small>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.extra_image_1.id_for_label }}" class="form-label">
+                            <i class="fas fa-images text-primary"></i> {{ form.extra_image_1.label }}
+                        </label>
+                        {{ form.extra_image_1 }}
+                        {% if form.extra_image_1.errors %}
+                            <div class="text-danger">{{ form.extra_image_1.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.extra_image_2.id_for_label }}" class="form-label">
+                            <i class="fas fa-images text-primary"></i> {{ form.extra_image_2.label }}
+                        </label>
+                        {{ form.extra_image_2 }}
+                        {% if form.extra_image_2.errors %}
+                            <div class="text-danger">{{ form.extra_image_2.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.extra_image_3.id_for_label }}" class="form-label">
+                            <i class="fas fa-images text-primary"></i> {{ form.extra_image_3.label }}
+                        </label>
+                        {{ form.extra_image_3 }}
+                        {% if form.extra_image_3.errors %}
+                            <div class="text-danger">{{ form.extra_image_3.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.extra_image_4.id_for_label }}" class="form-label">
+                            <i class="fas fa-images text-primary"></i> {{ form.extra_image_4.label }}
+                        </label>
+                        {{ form.extra_image_4 }}
+                        {% if form.extra_image_4.errors %}
+                            <div class="text-danger">{{ form.extra_image_4.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.extra_image_5.id_for_label }}" class="form-label">
+                            <i class="fas fa-images text-primary"></i> {{ form.extra_image_5.label }}
+                        </label>
+                        {{ form.extra_image_5 }}
+                        {% if form.extra_image_5.errors %}
+                            <div class="text-danger">{{ form.extra_image_5.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Описание -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">📝 Описание</h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label for="{{ form.description.id_for_label }}" class="form-label">
+                    <i class="fas fa-info-circle text-primary"></i> {{ form.description.label }}
+                </label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                    <div class="text-danger">{{ form.description.errors }}</div>
+                {% endif %}
+                <small class="form-text text-muted">Краткое описание лекарства и его назначения</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Инструкция по применению -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">📋 Инструкция по применению</h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label for="{{ form.instruction.id_for_label }}" class="form-label">
+                    <i class="fas fa-file-medical text-primary"></i> {{ form.instruction.label }}
+                </label>
+                {{ form.instruction }}
+                {% if form.instruction.errors %}
+                    <div class="text-danger">{{ form.instruction.errors }}</div>
+                {% endif %}
+                <small class="form-text text-muted">Подробная инструкция по применению лекарства</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Кнопки -->
+    <div class="d-flex gap-2 justify-content-between align-items-center">
+        <div>
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus"></i> Создать лекарство
+            </button>
+            <a href="{% url 'pharmacy_dashboard' %}" class="btn btn-outline-secondary btn-lg">
+                <i class="fas fa-arrow-left"></i> Назад к панели
+            </a>
+        </div>
+        <div class="text-muted">
+            <small><i class="fas fa-info-circle"></i> После создания лекарство будет доступно для добавления во все аптеки</small>
+        </div>
+    </div>
 </form>
+
                 </div>
             </div>
         </div>
@@ -340,5 +348,49 @@ input[type="file"]::-webkit-file-upload-button:hover {
     color: #c82333;
 }
 </style>
+
+
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const nameField = document.getElementById('id_name');  // ← исправлено
+    const slugField = document.getElementById('slug-preview'); // ← slug_preview мы задали вручную
+
+    if (nameField && slugField) {
+        function createSlug(text) {
+            return text
+                .toLowerCase()
+                .replace(/[а-яё]/g, function(char) {
+                    const map = {
+                        'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo',
+                        'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
+                        'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
+                        'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch',
+                        'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya'
+                    };
+                    return map[char] || char;
+                })
+                .replace(/[^\w\s-]/g, '')
+                .replace(/[\s_-]+/g, '-')
+                .replace(/^-+|-+$/g, '');
+        }
+
+        nameField.addEventListener('input', function() {
+            slugField.value = createSlug(this.value);
+        });
+
+        if (nameField.value) {
+            slugField.value = createSlug(nameField.value);
+        }
+    }
+});
+</script>
+
+
+
+
+
 
 {% endblock %}

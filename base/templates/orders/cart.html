@@ -144,26 +144,48 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 
   // удалить
-  document.querySelectorAll(".remove-cart-btn").forEach(btn => {
-    btn.addEventListener("click", function() {
-      const row = this.closest("tr");
-      if (!confirm("Удалить позицию из корзины?")) return;
-      fetch(this.dataset.url, {
-        method: "POST",
-        headers: {
-          "X-CSRFToken": csrftoken,
-          "X-Requested-With": "XMLHttpRequest"
+// удалить
+document.querySelectorAll(".remove-cart-btn").forEach(btn => {
+  btn.addEventListener("click", function() {
+    const row = this.closest("tr");
+    const pharmacyCard = this.closest(".card"); // блок аптеки
+
+    if (!confirm("Удалить позицию из корзины?")) return;
+
+    fetch(this.dataset.url, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": csrftoken,
+        "X-Requested-With": "XMLHttpRequest"
+      }
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.status === "ok") {
+        row.remove();
+
+        // если в таблице не осталось строк товаров — удаляем саму аптеку
+        const remainingRows = pharmacyCard.querySelectorAll("tbody tr");
+        if (remainingRows.length === 0) {
+          pharmacyCard.remove();
         }
-      })
-      .then(r => r.json())
-      .then(data => {
-        if (data.status === "ok") {
-          row.remove();
-          recalcSummary();
+
+        // если вообще больше нет аптек — показываем сообщение
+        const remainingCards = document.querySelectorAll(".card.mb-4.shadow-sm");
+        if (remainingCards.length === 0) {
+          const container = document.querySelector(".col-md-9");
+          container.innerHTML = '<p class="text-muted">Корзина пуста.</p>';
+          // и можно скрыть правую панель итогов:
+          const summary = document.getElementById("cart-summary");
+          if (summary) summary.remove();
         }
-      });
+
+        recalcSummary();
+      }
     });
   });
+});
+
 
   // чекбоксы
   document.querySelectorAll(".item-check").forEach(ch => ch.addEventListener("change", recalcSummary));

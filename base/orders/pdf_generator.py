@@ -100,11 +100,11 @@ def create_receipt_pdf(order, pickup, items, is_courier=False):
         return current_y
     
     # Заголовок
-    draw_text("=" * 50, left_margin, current_y, "CustomFont", 8)
+    draw_text("=" * 120, left_margin, current_y, "CustomFont", 8)
     current_y -= 25
     draw_text("ЧЕК ЗАКАЗА", left_margin, current_y, "CustomFont-Bold", 16, "center")
     current_y -= 20
-    draw_text("=" * 50, left_margin, current_y, "CustomFont", 8)
+    draw_text("=" * 120, left_margin, current_y, "CustomFont", 8)
     current_y -= 15
     
     # Информация о заказе
